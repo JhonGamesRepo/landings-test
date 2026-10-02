@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ataque de Pánico | Metal Colombiano</title>
+  <meta name="description" content="Ataque de Pánico — Metal desde Colombia. Escucha Malviajado y sigue a la banda en redes.">
+  <meta name="theme-color" content="#000000">
+  <link rel="icon" href="img/favicon.ico">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Rye&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="is-locked">
+
+  <!-- ===== INTRO: CRISIS ===== -->
+  <div class="intro" id="intro" aria-hidden="true">
+    <div class="intro__half intro__half--top"></div>
+    <div class="intro__half intro__half--bottom"></div>
+
+    <svg class="intro__cracks" id="introCracks" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice"></svg>
+
+    <div class="intro__stage">
+      <div class="intro__vitals">
+        <span class="intro__bpm"><b id="bpm">72</b> BPM</span>
+        <svg class="intro__ecg" viewBox="0 0 600 100" preserveAspectRatio="none">
+          <path pathLength="1" d="M0 50 H120 L135 50 L145 20 L155 80 L165 5 L178 95 L190 50 H300 L315 50 L325 20 L335 80 L345 5 L358 95 L370 50 H480 L495 50 L505 20 L515 80 L525 5 L538 95 L550 50 H600"/>
+        </svg>
+        <p class="intro__msg" id="introMsg"></p>
+      </div>
+
+      <div class="intro__eyes">
+        <span class="intro__eye"></span>
+        <span class="intro__eye"></span>
+      </div>
+
+      <div class="intro__logo glitch">
+        <img src="img/logo-ap.png" alt="">
+        <img src="img/logo-ap.png" alt="">
+        <img src="img/logo-ap.png" alt="">
+      </div>
+    </div>
+
+    <div class="intro__gate" id="introGate">
+      <button class="lang intro__lang" type="button" data-lang-toggle><span data-l="es">ES</span><i>/</i><span data-l="en">EN</span></button>
+      <p class="intro__gate-tip" data-i18n="gateTip">Experiencia con sonido &middot; usa audífonos</p>
+      <div class="intro__gate-btns">
+        <button class="btn btn--y" type="button" data-sound="on" data-i18n="gateOn">Entrar con sonido</button>
+        <button class="btn btn--ghost" type="button" data-sound="off" data-i18n="gateOff">Sin sonido</button>
+      </div>
+    </div>
+
+    <button class="intro__skip" id="introSkip" type="button" data-i18n="skip">Saltar &rarr;</button>
+  </div>
+
+  <!-- ===== HEADER ===== -->
+  <header class="header" id="header">
+    <a class="header__logo" href="#inicio" aria-label="Inicio" data-i18n-attr="aria-label:homeLabel">
+      <img src="img/logo-ap.png" alt="Ataque de Pánico">
+    </a>
+    <button class="lang" type="button" data-lang-toggle><span data-l="es">ES</span><i>/</i><span data-l="en">EN</span></button>
+    <button class="header__toggle" id="navToggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav">
+      <span></span><span></span>
+    </button>
+    <nav class="nav" id="nav" aria-label="Navegación principal" data-i18n-attr="aria-label:navLabel">
+      <a href="#malviajado">Malviajado</a>
+      <a href="#escuchar" data-i18n="navListen">Escuchar</a>
+      <a href="#discos" data-i18n="navDiscs">Discos</a>
+      <a href="#banda" data-i18n="navBand">La banda</a>
+      <a href="#redes" data-i18n="navSocial">Redes</a>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ===== HERO ===== -->
+    <section class="hero" id="inicio">
+      <svg class="hero__cracks" id="heroCracks" viewBox="0 0 1000 1000" preserveAspectRatio="xMidYMid slice" aria-hidden="true"></svg>
+
+      <div class="hero__text">
+        <p class="kicker reveal" data-i18n="kicker">Metal &middot; Colombiano</p>
+        <h1 class="hero__title reveal">
+          <span class="hero__title-line" data-i18n="title1">El miedo</span>
+          <span class="hero__title-line hero__title-line--y" data-i18n="title2">también</span>
+          <span class="hero__title-line" data-i18n="title3">suena fuerte</span>
+        </h1>
+        <p class="hero__sub reveal" data-i18n="heroSub">Taquicardia, distorsión y un viaje que no pediste. Escucha <strong>Malviajado</strong>, el nuevo golpe de Ataque de Pánico.</p>
+        <div class="hero__ctas reveal">
+          <a class="btn btn--y" href="https://open.spotify.com/album/4XMhggLSXGXOq3BMUV1Nkk" target="_blank" rel="noopener" data-i18n="ctaSpotify">Escuchar en Spotify</a>
+          <a class="btn btn--ghost" href="#redes" data-i18n="ctaFollow">Seguir a la banda</a>
+        </div>
+      </div>
+
+      <figure class="cover reveal" id="malviajado">
+        <div class="cover__frame" id="coverTilt">
+          <img src="img/malviajado.jpg" alt="Portada de Malviajado: rostro azul agrietado con ojos amarillos" data-i18n-attr="alt:coverAlt">
+          <span class="cover__eye cover__eye--l"></span>
+          <span class="cover__eye cover__eye--r"></span>
+        </div>
+        <figcaption>Malviajado <span>&mdash; EP 2025</span></figcaption>
+      </figure>
+
+      <a class="hero__scroll" href="#escuchar" aria-label="Bajar" data-i18n-attr="aria-label:scrollLabel"><span></span></a>
+    </section>
+
+    <!-- ===== MARQUEE ===== -->
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee__track">
+        <span>Ataque de Pánico</span><i>&#10038;</i><span>Malviajado</span><i>&#10038;</i><span data-i18n="marquee">Metal Colombiano</span><i>&#10038;</i>
+        <span>Ataque de Pánico</span><i>&#10038;</i><span>Malviajado</span><i>&#10038;</i><span data-i18n="marquee">Metal Colombiano</span><i>&#10038;</i>
+      </div>
+    </div>
+
+    <!-- ===== ESCUCHAR ===== -->
+    <section class="section listen" id="escuchar">
+      <header class="section__head reveal">
+        <span class="section__num">01</span>
+        <h2 class="section__title" data-i18n="listenTitle">Escuchar</h2>
+      </header>
+      <div class="listen__grid">
+        <div class="listen__player reveal">
+          <iframe id="listenEmbed" title="Reproductor de Spotify" data-i18n-attr="title:playerTitle" src="https://open.spotify.com/embed/album/4XMhggLSXGXOq3BMUV1Nkk?utm_source=generator&theme=0" width="100%" height="452" frameborder="0" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>
+        </div>
+        <div class="listen__copy reveal">
+          <p class="listen__lead" data-i18n="listenLead">Ponte los audífonos. Sube el volumen hasta que tiemble el pecho.</p>
+          <p data-i18n="listenText">Malviajado es lo que pasa cuando el pulso se dispara y no hay salida: riffs que aprietan, voces que se quiebran y un final que te deja mirando al techo.</p>
+          <a class="btn btn--c" href="https://open.spotify.com/album/4XMhggLSXGXOq3BMUV1Nkk" target="_blank" rel="noopener" data-i18n="openSpotify">Abrir en Spotify</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== DISCOGRAFÍA ===== -->
+    <section class="section discs" id="discos">
+      <header class="section__head reveal">
+        <span class="section__num">02</span>
+        <h2 class="section__title" data-i18n="discsTitle">Discografía</h2>
+      </header>
+      <div class="discs__grid">
+        <article class="disc reveal">
+          <div class="disc__art">
+            <span class="disc__vinyl" aria-hidden="true"></span>
+            <img src="img/malviajado.jpg" alt="Portada de Malviajado" data-i18n-attr="alt:altMalviajado" loading="lazy" width="640" height="640">
+          </div>
+          <p class="disc__meta" data-i18n="metaMalviajado">EP &middot; 2025 &middot; 4 canciones</p>
+          <h3 class="disc__title">Malviajado</h3>
+          <div class="disc__actions">
+            <button class="disc__play" type="button" data-embed="album/4XMhggLSXGXOq3BMUV1Nkk"></button>
+            <a class="disc__link" href="https://open.spotify.com/album/4XMhggLSXGXOq3BMUV1Nkk" target="_blank" rel="noopener">Spotify &#8599;</a>
+          </div>
+        </article>
+        <article class="disc reveal">
+          <div class="disc__art">
+            <span class="disc__vinyl" aria-hidden="true"></span>
+            <img src="img/fragmentado.jpg" alt="Portada de Fragmentado" data-i18n-attr="alt:altFragmentado" loading="lazy" width="640" height="640">
+          </div>
+          <p class="disc__meta">Single &middot; 2025</p>
+          <h3 class="disc__title">Fragmentado</h3>
+          <div class="disc__actions">
+            <button class="disc__play" type="button" data-embed="album/7eTOzG0lqckP8ub3FNPUdx"></button>
+            <a class="disc__link" href="https://open.spotify.com/album/7eTOzG0lqckP8ub3FNPUdx" target="_blank" rel="noopener">Spotify &#8599;</a>
+          </div>
+        </article>
+        <article class="disc reveal">
+          <div class="disc__art">
+            <span class="disc__vinyl" aria-hidden="true"></span>
+            <img src="img/caras-vemos.jpg" alt="Portada de Caras Vemos" data-i18n-attr="alt:altCaras" loading="lazy" width="640" height="640">
+          </div>
+          <p class="disc__meta">Single &middot; 2025</p>
+          <h3 class="disc__title">Caras Vemos</h3>
+          <div class="disc__actions">
+            <button class="disc__play" type="button" data-embed="album/44TAs3ZDOJS3laa3zQgYr4"></button>
+            <a class="disc__link" href="https://open.spotify.com/album/44TAs3ZDOJS3laa3zQgYr4" target="_blank" rel="noopener">Spotify &#8599;</a>
+          </div>
+        </article>
+        <article class="disc reveal">
+          <div class="disc__art">
+            <span class="disc__vinyl" aria-hidden="true"></span>
+            <img src="img/severa-molleja.jpg" alt="Portada de Severa Molleja" data-i18n-attr="alt:altSevera" loading="lazy" width="640" height="640">
+          </div>
+          <p class="disc__meta" data-i18n="metaSevera">Álbum &middot; 2017 &middot; 7 canciones</p>
+          <h3 class="disc__title">Severa Molleja</h3>
+          <div class="disc__actions">
+            <button class="disc__play" type="button" data-embed="album/4fCyjkPWdfQdcWqWKDVbjO"></button>
+            <a class="disc__link" href="https://open.spotify.com/album/4fCyjkPWdfQdcWqWKDVbjO" target="_blank" rel="noopener">Spotify &#8599;</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- ===== BANDA ===== -->
+    <section class="section band" id="banda">
+      <header class="section__head reveal">
+        <span class="section__num">03</span>
+        <h2 class="section__title" data-i18n="bandTitle">La banda</h2>
+      </header>
+      <div class="band__grid">
+        <blockquote class="band__quote reveal" data-i18n="bandQuote">
+          &ldquo;Todo el mundo tiene un <em>ataque de pánico</em>. Nosotros lo convertimos en canciones.&rdquo;
+        </blockquote>
+        <div class="band__facts reveal">
+          <div class="fact"><span class="fact__label" data-i18n="factGenre">Género</span><span class="fact__value">Metal</span></div>
+          <div class="fact"><span class="fact__label" data-i18n="factOrigin">Origen</span><span class="fact__value">Colombia</span></div>
+          <div class="fact"><span class="fact__label" data-i18n="factLatest">Último EP</span><span class="fact__value fact__value--y">Malviajado</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== REDES ===== -->
+    <section class="section social" id="redes">
+      <header class="section__head reveal">
+        <span class="section__num">04</span>
+        <h2 class="section__title" data-i18n="socialTitle">Redes</h2>
+      </header>
+      <div class="social__grid">
+        <a class="social__card reveal" href="https://open.spotify.com/artist/10jcDYbdUmeICp2HG6zGNK" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6.5 9.3c3.8-1.2 7.8-.9 11 .9M7.3 12.4c3.1-.9 6.3-.6 9 .8M8.1 15.3c2.4-.6 4.7-.4 6.8.7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <span class="social__name">Spotify</span>
+          <span class="social__hint" data-i18n="artistProfile">Perfil de artista</span>
+        </a>
+        <a class="social__card reveal" href="https://www.youtube.com/@ataquedepanico3986" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="1.5" y="4.5" width="21" height="15" rx="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M10 8.8v6.4l5.4-3.2z" fill="currentColor"/></svg>
+          <span class="social__name">YouTube</span>
+          <span class="social__hint">@ataquedepanico3986</span>
+        </a>
+        <a class="social__card reveal" href="https://www.instagram.com/ataquepanico/" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="4.3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="17.4" cy="6.6" r="1.2" fill="currentColor"/></svg>
+          <span class="social__name">Instagram</span>
+          <span class="social__hint">@ataquepanico</span>
+        </a>
+        <a class="social__card reveal" href="https://www.facebook.com/ATAQUEDEPANICOCOLOMBIA/?locale=es_LA" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13.6 21.5v-8h2.7l.5-3.3h-3.2V8.1c0-.9.4-1.7 1.8-1.7h1.5V3.6s-1.3-.2-2.6-.2c-2.7 0-4.4 1.6-4.4 4.6v2.2H7v3.3h2.9v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          <span class="social__name">Facebook</span>
+          <span class="social__hint">Ataque de Pánico Colombia</span>
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <img class="footer__logo" src="img/logo-ap.png" alt="Ataque de Pánico">
+    <p>&copy; <span id="year"></span> Ataque de Pánico &middot; <span data-i18n="footerTag">Metal desde Colombia</span></p>
+    <button class="footer__replay" id="replayIntro" type="button" data-i18n="replay">Repetir crisis &#8635;</button>
+  </footer>
+
+  <!-- ===== REPRODUCTOR FLOTANTE (Malviajado desde el 3:50) ===== -->
+  <aside class="np" id="nowPlaying" aria-label="Reproductor: Malviajado" data-i18n-attr="aria-label:npLabel">
+    <button class="np__close" id="npClose" type="button" aria-label="Cerrar reproductor" data-i18n-attr="aria-label:npClose">&times;</button>
+    <div id="npEmbed"></div>
+  </aside>
+
+  <script src="js/main.js"></script>
+  <script src="https://open.spotify.com/embed/iframe-api/v1" async></script>
+</body>
+</html>
