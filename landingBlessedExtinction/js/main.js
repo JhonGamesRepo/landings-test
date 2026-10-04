@@ -1094,8 +1094,8 @@
   // ----- Chat con la banda (Telegram) -----
   // La página sólo habla con el Worker de Cloudflare (carpeta chat-worker-blessed);
   // el token del bot nunca llega al navegador. TURNSTILE_SITEKEY es pública.
-  const CHAT_API = '';          // p. ej. 'https://blessed-chat.TU-SUBDOMINIO.workers.dev'
-  const TURNSTILE_SITEKEY = ''; // clave de sitio de Cloudflare Turnstile
+  const CHAT_API = 'https://blessed-chat.blessed-chat.workers.dev';
+  const TURNSTILE_SITEKEY = '0x4AAAAAAFNvAufF8maHmmyH'; // clave de sitio de Cloudflare Turnstile (pública)
   (() => {
     const fab = document.getElementById('chatFab');
     const panel = document.getElementById('chatPanel');
