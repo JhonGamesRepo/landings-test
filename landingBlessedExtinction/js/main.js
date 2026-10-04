@@ -487,23 +487,52 @@
   }
 
   // Copia del splash congelada en su fotograma actual (las animaciones CSS se sincronizan)
-  const snapshotSplash = (layer, clip) => {
+  // pts: vértices del trozo y [ox, oy]: su eje de giro, en px de pantalla. Cada trozo
+  // ocupa sólo su caja (no la pantalla entera) y sus animaciones quedan en pausa: en el
+  // móvil, 16 capas a pantalla completa y animadas colgaban la salida.
+  const snapshotSplash = (layer, pts, [ox, oy]) => {
+    const xs = pts.map(([x]) => x);
+    const ys = pts.map(([, y]) => y);
+    const left = Math.max(0, Math.floor(Math.min(...xs)));
+    const top = Math.max(0, Math.floor(Math.min(...ys)));
+    const right = Math.min(innerWidth, Math.ceil(Math.max(...xs)));
+    const bottom = Math.min(innerHeight, Math.ceil(Math.max(...ys)));
     const piece = document.createElement('div');
     piece.className = 'splash-exit__piece';
+    Object.assign(piece.style, {
+      left: `${left}px`,
+      top: `${top}px`,
+      width: `${right - left}px`,
+      height: `${bottom - top}px`,
+      transformOrigin: `${ox - left}px ${oy - top}px`,
+    });
     const copy = splash.cloneNode(true);
     copy.removeAttribute('id');
     copy.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
-    copy.style.clipPath = clip;
+    // La copia sigue midiendo la pantalla; se desplaza para que su trozo caiga dentro de la caja
+    Object.assign(copy.style, {
+      inset: 'auto',
+      left: `${-left}px`,
+      top: `${-top}px`,
+      width: `${innerWidth}px`,
+      height: `${innerHeight}px`,
+      clipPath: `polygon(${pts.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(', ')})`,
+    });
     piece.appendChild(copy);
     layer.appendChild(piece);
     const src = [splash, ...splash.querySelectorAll('*')];
     const twins = new Map([copy, ...copy.querySelectorAll('*')].map((n, k) => [n, src[k]]));
-    copy.getAnimations({ subtree: true }).forEach((anim) => {
-      if (!(anim instanceof CSSAnimation)) return;
-      const twin = twins.get(anim.effect.target)?.getAnimations()
-        .find((a) => a.animationName === anim.animationName);
-      if (twin) anim.currentTime = twin.currentTime;
-    });
+    // Sin polvo en los trozos: son muchas copias y no se nota
+    copy.querySelectorAll('.splash__dust').forEach((n) => n.remove());
+    if (copy.getAnimations) {
+      copy.getAnimations({ subtree: true }).forEach((anim) => {
+        if (!anim.animationName) return;
+        const twin = twins.get(anim.effect.target)?.getAnimations()
+          .find((a) => a.animationName === anim.animationName);
+        if (twin) anim.currentTime = twin.currentTime;
+        anim.pause();
+      });
+    }
     return piece;
   };
 
@@ -526,11 +555,10 @@
     const cx = w * (0.44 + Math.random() * 0.12);
     const cy = h * (0.38 + Math.random() * 0.12);
     const far = Math.hypot(w, h);
-    const spokes = 8;
+    const spokes = Math.min(w, h) < 700 ? 6 : 8; // menos trozos en móvil
     const angles = Array.from({ length: spokes }, (_, k) => ((k + 0.5 + (Math.random() - 0.5) * 0.6) / spokes) * Math.PI * 2);
     const radii = angles.map(() => Math.min(w, h) * (0.14 + Math.random() * 0.12));
     const at = (a, r) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
-    const toClip = (pts) => `polygon(${pts.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(', ')})`;
     const shards = []; // [trozo, fotogramas, opciones]
     angles.forEach((a, k) => {
       const b = k + 1 < spokes ? angles[k + 1] : angles[0] + Math.PI * 2;
@@ -540,8 +568,7 @@
       const spin = (Math.random() - 0.5) * 50;
 
       const inner = [[cx, cy], at(a, ra), at(b, rb)];
-      const p1 = snapshotSplash(layer, toClip(inner));
-      p1.style.transformOrigin = `${at(mid, (ra + rb) / 3).map((v) => `${v}px`).join(' ')}`;
+      const p1 = snapshotSplash(layer, inner, at(mid, (ra + rb) / 3));
       shards.push([p1, [
         { transform: 'none', opacity: 1 },
         { transform: `translate(${Math.cos(mid) * 6}px, ${Math.sin(mid) * 6}px)`, opacity: 1, offset: 0.15 },
@@ -549,8 +576,7 @@
       ], { duration: 800, delay: IMPACT, easing: 'cubic-bezier(0.4, 0, 0.9, 0.6)', fill: 'forwards' }]);
 
       const outer = [at(a, ra), at(a, far), at(b, far), at(b, rb)];
-      const p2 = snapshotSplash(layer, toClip(outer));
-      p2.style.transformOrigin = `${at(mid, Math.max(ra, rb) * 1.8).map((v) => `${v}px`).join(' ')}`;
+      const p2 = snapshotSplash(layer, outer, at(mid, Math.max(ra, rb) * 1.8));
       const drift = Math.cos(mid) * w * 0.15;
       shards.push([p2, [
         { transform: 'none' },
@@ -558,8 +584,6 @@
         { transform: `translate(${drift}px, ${h * 1.25}px) rotate(${spin}deg)` },
       ], { duration: 1300 + Math.random() * 400, delay: IMPACT + 60 + Math.random() * 260, easing: 'cubic-bezier(0.5, 0, 0.9, 0.5)', fill: 'forwards', release: 0.12 }]);
     });
-    // Sin polvo en los fragmentos: son muchas copias y no se nota
-    layer.querySelectorAll('.splash__dust').forEach((n) => n.remove());
     splash.style.display = 'none';
 
     // Dos fotogramas: los trozos (idénticos a la pantalla) ya están pintados antes de moverse
@@ -587,7 +611,19 @@
       splash.addEventListener('transitionend', () => { if (closed) splash.style.display = 'none'; }, { once: true });
       return;
     }
-    shatterSplash(withSound).then(() => { if (closed) splash.style.display = 'none'; });
+    // Red de seguridad: si el vitral falla o se atasca, la pantalla se oculta igualmente
+    const hide = () => {
+      if (!closed) return;
+      splash.style.display = 'none';
+      document.querySelectorAll('.splash-exit').forEach((n) => n.remove());
+    };
+    const fallback = setTimeout(hide, 4000);
+    try {
+      shatterSplash(withSound).catch(() => {}).then(() => { clearTimeout(fallback); hide(); });
+    } catch (err) {
+      clearTimeout(fallback);
+      hide();
+    }
   };
 
   let started = false;

@@ -396,11 +396,16 @@ ul {
 }
 .splash-exit__piece {
   position: absolute;
-  inset: 0;
+  overflow: hidden; /* cada trozo mide sólo su caja (la fija el JS) */
   will-change: transform, opacity;
 }
 .splash-exit--vitral .splash-exit__piece {
   filter: drop-shadow(0 0 1px #f0d58a) drop-shadow(0 0 4px rgba(201, 162, 74, 0.75));
+}
+@media (max-width: 700px) {
+  .splash-exit--vitral .splash-exit__piece {
+    filter: drop-shadow(0 0 1.5px #f0d58a);
+  }
 }
 
 .header {

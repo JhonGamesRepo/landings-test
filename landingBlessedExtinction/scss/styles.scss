@@ -447,13 +447,16 @@ $splash-duration: 7s; // mantener sincronizado con SPLASH_DURATION en main.js
 
   &__piece {
     position: absolute;
-    inset: 0;
+    overflow: hidden; // cada trozo mide sólo su caja (la fija el JS)
     will-change: transform, opacity;
   }
 
   // Plomo dorado entre los fragmentos del vitral
   &--vitral &__piece {
     filter: drop-shadow(0 0 1px c("gold-light")) drop-shadow(0 0 4px rgba(c("gold"), 0.75));
+
+    // En móvil un solo resplandor: cada filtro extra pesa en la GPU
+    @media (max-width: 700px) { filter: drop-shadow(0 0 1.5px c("gold-light")); }
   }
 }
 
