@@ -25,7 +25,7 @@
     <div class="splash__dust" id="splashDust" aria-hidden="true"></div>
 
     <div class="splash__content">
-      <img class="splash__logo" src="logoverde-web.png" alt="Blessed Extinction">
+      <img class="splash__logo" src="img/logoverde-web.png" alt="Blessed Extinction">
       <span class="splash__kicker" data-i18n="splash.kicker">Nuevo single</span>
       <p class="splash__title" id="splashTitle">Incorruptible Cadavérico</p>
       <div class="splash__ornament" aria-hidden="true">
@@ -61,7 +61,7 @@
   <header class="header" id="header">
     <div class="header__inner">
       <a class="header__logo" href="#inicio" aria-label="Inicio" data-i18n-attr="aria-label:nav.home">
-        <img src="logoverde-web.png" alt="Blessed Extinction">
+        <img src="img/logoverde-web.png" alt="Blessed Extinction">
       </a>
 
       <div class="lang" role="group" aria-label="Idioma / Language">
@@ -89,7 +89,7 @@
     <!-- ===== HERO ===== -->
     <section class="hero" id="inicio">
       <div class="hero__content">
-        <img class="hero__logo" src="logoverde-web.png" alt="Blessed Extinction">
+        <img class="hero__logo" src="img/logoverde-web.png" alt="Blessed Extinction">
         <span class="hero__kicker" data-i18n="hero.kicker">Nuevo single</span>
         <h1 class="hero__title">Incorruptible Cadavérico</h1>
         <p class="hero__subtitle" data-i18n="hero.subtitle">Metal desde Bogotá, Colombia, desde 2013. El nuevo single ya está disponible con su lyric video oficial.</p>
@@ -105,65 +105,74 @@
     <section class="section section--dark discography" id="musica">
       <div class="section__inner">
         <h2 class="section__title" data-i18n="disc.title">Discografía</h2>
-        <div class="discography__grid">
-
-          <article class="discography__card discography__card--incorruptible">
-            <div class="discography__cover">
-              <img src="img/incorruptible-cadaverico.jpg" alt="Portada del single Incorruptible Cadavérico" data-i18n-attr="alt:disc.altInc" width="642" height="645" loading="lazy">
-              <span class="discography__badge" data-i18n="disc.new">Nuevo</span>
-            </div>
-            <div class="discography__body">
-              <span class="discography__type">Single</span>
-              <h3 class="discography__title">Incorruptible Cadavérico</h3>
-              <div class="discography__links">
-                <a class="btn btn--primary btn--sm" href="https://www.youtube.com/watch?v=gRbIRqeaQFg" target="_blank" rel="noopener">Lyric video</a>
-                <a class="btn btn--ghost btn--sm" href="https://open.spotify.com/album/6DzUlxrxQUV7wVz3yjdAvM" target="_blank" rel="noopener">Spotify</a>
+        <!-- Un lanzamiento a la vez: la portada es la funda y el vinilo sale de
+             ella; a la derecha, datos, enlaces y reproductor. Las portadas de
+             abajo eligen el lanzamiento. -->
+        <div class="disc" id="disc" data-release="inc">
+          <div class="disc__stage">
+            <div class="disc__records">
+              <div class="disc__record" data-release="inc">
+                <span class="disc__vinyl"><img src="img/incorruptible-cadaverico.jpg" alt="" width="642" height="645" loading="lazy"></span>
+                <img class="disc__sleeve" src="img/incorruptible-cadaverico.jpg" alt="Portada del single Incorruptible Cadavérico" data-i18n-attr="alt:disc.altInc" width="642" height="645" loading="lazy">
+                <span class="discography__badge" data-i18n="disc.new">Nuevo</span>
+              </div>
+              <div class="disc__record" data-release="sie" hidden>
+                <span class="disc__vinyl"><img src="img/siembra-de-cadaveres.jpg" alt="" width="640" height="640" loading="lazy"></span>
+                <img class="disc__sleeve" src="img/siembra-de-cadaveres.jpg" alt="Portada del single Siembra de Cadáveres" data-i18n-attr="alt:disc.altSie" width="640" height="640" loading="lazy">
+              </div>
+              <div class="disc__record" data-release="ven" hidden>
+                <span class="disc__vinyl"><img src="img/venganza-natural.jpg" alt="" width="642" height="644" loading="lazy"></span>
+                <img class="disc__sleeve" src="img/venganza-natural.jpg" alt="Portada del EP Venganza Natural" data-i18n-attr="alt:disc.altVen" width="642" height="644" loading="lazy">
               </div>
             </div>
-          </article>
 
-          <article class="discography__card discography__card--siembra">
-            <div class="discography__cover">
-              <img src="img/siembra-de-cadaveres.jpg" alt="Portada del single Siembra de Cadáveres" data-i18n-attr="alt:disc.altSie" width="640" height="640" loading="lazy">
-            </div>
-            <div class="discography__body">
-              <span class="discography__type">Single</span>
-              <h3 class="discography__title">Siembra de Cadáveres</h3>
-              <div class="discography__links">
-                <a class="btn btn--primary btn--sm" href="https://www.youtube.com/watch?v=ZekZaDuz7VE" target="_blank" rel="noopener" data-i18n="video.official">Video oficial</a>
-                <a class="btn btn--ghost btn--sm" href="https://open.spotify.com/album/5VBHM5pahiAtTz59379KGE" target="_blank" rel="noopener">Spotify</a>
+            <div class="disc__side">
+              <div class="disc__info" data-release="inc" id="disc-inc" role="tabpanel">
+                <span class="disc__type" data-i18n="disc.newSingle">Nuevo single</span>
+                <h3 class="disc__title">Incorruptible Cadavérico</h3>
+                <div class="disc__links">
+                  <a class="btn btn--primary btn--sm" href="https://www.youtube.com/watch?v=gRbIRqeaQFg" target="_blank" rel="noopener">Lyric video</a>
+                  <a class="btn btn--ghost btn--sm" href="https://open.spotify.com/album/6DzUlxrxQUV7wVz3yjdAvM" target="_blank" rel="noopener">Spotify</a>
+                </div>
               </div>
-            </div>
-          </article>
-
-          <article class="discography__card discography__card--venganza">
-            <div class="discography__cover">
-              <img src="img/venganza-natural.jpg" alt="Portada del EP Venganza Natural" data-i18n-attr="alt:disc.altVen" width="642" height="644" loading="lazy">
-            </div>
-            <div class="discography__body">
-              <span class="discography__type">EP</span>
-              <h3 class="discography__title">Venganza Natural</h3>
-              <div class="discography__links">
-                <a class="btn btn--primary btn--sm" href="https://music.youtube.com/playlist?list=OLAK5uy_nnMw1Wo_ns9KiGCXKrnx_9HjsG2vK_joU" target="_blank" rel="noopener">YouTube Music</a>
-                <a class="btn btn--ghost btn--sm" href="https://open.spotify.com/album/5liQVrCpyRbKDM98VG7U1H" target="_blank" rel="noopener">Spotify</a>
-                <a class="btn btn--ghost btn--sm" href="https://blessedextinction1.bandcamp.com/music" target="_blank" rel="noopener">Bandcamp</a>
+              <div class="disc__info" data-release="sie" id="disc-sie" role="tabpanel" hidden>
+                <span class="disc__type">Single</span>
+                <h3 class="disc__title">Siembra de Cadáveres</h3>
+                <div class="disc__links">
+                  <a class="btn btn--primary btn--sm" href="https://www.youtube.com/watch?v=ZekZaDuz7VE" target="_blank" rel="noopener" data-i18n="video.official">Video oficial</a>
+                  <a class="btn btn--ghost btn--sm" href="https://open.spotify.com/album/5VBHM5pahiAtTz59379KGE" target="_blank" rel="noopener">Spotify</a>
+                </div>
               </div>
+              <div class="disc__info" data-release="ven" id="disc-ven" role="tabpanel" hidden>
+                <span class="disc__type">EP</span>
+                <h3 class="disc__title">Venganza Natural</h3>
+                <div class="disc__links">
+                  <a class="btn btn--primary btn--sm" href="https://music.youtube.com/playlist?list=OLAK5uy_nnMw1Wo_ns9KiGCXKrnx_9HjsG2vK_joU" target="_blank" rel="noopener">YouTube Music</a>
+                  <a class="btn btn--ghost btn--sm" href="https://open.spotify.com/album/5liQVrCpyRbKDM98VG7U1H" target="_blank" rel="noopener">Spotify</a>
+                  <a class="btn btn--ghost btn--sm" href="https://blessedextinction1.bandcamp.com/music" target="_blank" rel="noopener">Bandcamp</a>
+                </div>
+              </div>
+              <iframe class="disc__player" id="spotifyFrame" title="Reproductor de Spotify — Blessed Extinction" data-i18n-attr="title:player.title"
+                src="https://open.spotify.com/embed/album/6DzUlxrxQUV7wVz3yjdAvM?utm_source=generator&amp;theme=0"
+                height="152" loading="lazy"
+                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
             </div>
-          </article>
-
-        </div>
-
-        <!-- Reproductor de Spotify: las pestañas cambian el lanzamiento -->
-        <div class="player" id="spotifyPlayer">
-          <div class="player__tabs" role="tablist" aria-label="Elegir lanzamiento" data-i18n-attr="aria-label:player.tabs">
-            <button class="player__tab is-active" type="button" role="tab" aria-selected="true" data-album="6DzUlxrxQUV7wVz3yjdAvM">Incorruptible Cadavérico</button>
-            <button class="player__tab" type="button" role="tab" aria-selected="false" data-album="5VBHM5pahiAtTz59379KGE">Siembra de Cadáveres</button>
-            <button class="player__tab" type="button" role="tab" aria-selected="false" data-album="5liQVrCpyRbKDM98VG7U1H">Venganza Natural</button>
           </div>
-          <iframe class="player__frame" id="spotifyFrame" title="Reproductor de Spotify — Blessed Extinction" data-i18n-attr="title:player.title"
-            src="https://open.spotify.com/embed/album/6DzUlxrxQUV7wVz3yjdAvM?utm_source=generator&amp;theme=0"
-            height="352" loading="lazy"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
+
+          <div class="disc__picker" role="tablist" aria-label="Elegir lanzamiento" data-i18n-attr="aria-label:player.tabs">
+            <button class="disc__pick" type="button" role="tab" aria-selected="true" aria-controls="disc-inc" data-release="inc" data-album="6DzUlxrxQUV7wVz3yjdAvM">
+              <img src="img/incorruptible-cadaverico.jpg" alt="" width="64" height="64" loading="lazy">
+              <span><small>Single</small><strong>Incorruptible Cadavérico</strong></span>
+            </button>
+            <button class="disc__pick" type="button" role="tab" aria-selected="false" aria-controls="disc-sie" data-release="sie" data-album="5VBHM5pahiAtTz59379KGE">
+              <img src="img/siembra-de-cadaveres.jpg" alt="" width="64" height="64" loading="lazy">
+              <span><small>Single</small><strong>Siembra de Cadáveres</strong></span>
+            </button>
+            <button class="disc__pick" type="button" role="tab" aria-selected="false" aria-controls="disc-ven" data-release="ven" data-album="5liQVrCpyRbKDM98VG7U1H">
+              <img src="img/venganza-natural.jpg" alt="" width="64" height="64" loading="lazy">
+              <span><small>EP</small><strong>Venganza Natural</strong></span>
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -200,6 +209,11 @@
 
     <!-- ===== PLATAFORMAS & REDES ===== -->
     <section class="section section--dark platforms" id="escuchar">
+      <!-- Linterna: la ilustración apenas se intuye y una luz que sigue al cursor la revela -->
+      <div class="lantern" id="lantern" aria-hidden="true">
+        <div class="lantern__img lantern__img--dim"></div>
+        <div class="lantern__light"><div class="lantern__img"></div></div>
+      </div>
       <div class="section__inner">
         <h2 class="section__title" data-i18n="platforms.title">Escucha &amp; Sigue</h2>
 
@@ -283,24 +297,36 @@
     <section class="section bio" id="banda">
       <div class="section__inner">
         <h2 class="section__title" data-i18n="bio.title">La Banda</h2>
-        <div class="bio__grid">
-          <div class="bio__text">
-            <p data-i18n="bio.p1">Blessed Extinction es una agrupación de metal colombiano que se consolida en la ciudad de Bogotá a finales del año 2013, bajo la influencia musical del Death, Thrash y New York Hardcore. La banda nace tras la disolución de diferentes proyectos que tenían sus integrantes, con el objetivo principal de formar un grupo sólido y consistente, que pueda dejar huella en la historia del metal nacional como otras bandas importantes de nuestro país.</p>
+        <!-- Foto panorámica y debajo la alineación en el mismo orden de la foto;
+             al pasar el cursor por un nombre, una luz señala a esa persona -->
+        <div class="bio__band">
+          <figure class="bio__photo">
+            <button class="bio__zoom" id="bioZoom" type="button" aria-label="Ver la foto completa" data-i18n-attr="aria-label:bio.photoZoom">
+              <img src="img/fotoBanda.jpg" alt="Blessed Extinction, de izquierda a derecha: Jhon Hernández, William Ruiz, Julio Sarmiento, Carlos Sarmiento y Julián Franco" data-i18n-attr="alt:bio.photoAlt" width="1280" height="960" loading="lazy">
+            </button>
+            <figcaption><small data-i18n="bio.photoCaption">Bogotá · Desde 2013</small></figcaption>
+          </figure>
+          <ul class="bio__lineup" aria-label="Integrantes" data-i18n-attr="aria-label:bio.members">
+            <li><strong>Jhon Hernández</strong><span data-i18n="role.guitar">Guitarra</span></li>
+            <li><strong>William Ruiz</strong><span data-i18n="role.drums">Batería</span></li>
+            <li><strong>Julio Sarmiento</strong><span data-i18n="role.guitar">Guitarra</span></li>
+            <li><strong>Carlos Sarmiento</strong><span data-i18n="role.bass">Bajo</span></li>
+            <li><strong>Julián Franco</strong><span data-i18n="role.vocals">Voz</span></li>
+          </ul>
+        </div>
+
+        <div class="bio__text">
+          <p data-i18n="bio.p1">Blessed Extinction es una agrupación de metal colombiano que se consolida en la ciudad de Bogotá a finales del año 2013, bajo la influencia musical del Death, Thrash y New York Hardcore. La banda nace tras la disolución de diferentes proyectos que tenían sus integrantes, con el objetivo principal de formar un grupo sólido y consistente, que pueda dejar huella en la historia del metal nacional como otras bandas importantes de nuestro país.</p>
+          <div>
             <p data-i18n="bio.p2">Un mundo apocalíptico y el declive social son algunos de los temas principales que trata la banda en sus letras, así como vivencias y pensamientos personales, acompañados de fuertes riffs de guitarra y agresivos rasgados de voz.</p>
             <p data-i18n-html="bio.p3">Tras el EP <em>Venganza Natural</em> y el single <em>Siembra de Cadáveres</em>, la banda presenta su nuevo single <em>Incorruptible Cadavérico</em>.</p>
           </div>
-
-          <aside class="bio__members">
-            <h3 data-i18n="bio.members">Integrantes</h3>
-            <ul>
-              <li class="bio__member"><strong>Julián Franco</strong><span data-i18n="role.vocals">Voz</span></li>
-              <li class="bio__member"><strong>Jhon Hernández</strong><span data-i18n="role.guitar">Guitarra</span></li>
-              <li class="bio__member"><strong>Julio Sarmiento</strong><span data-i18n="role.guitar">Guitarra</span></li>
-              <li class="bio__member"><strong>Carlos Sarmiento</strong><span data-i18n="role.bass">Bajo</span></li>
-              <li class="bio__member"><strong>William Ruiz</strong><span data-i18n="role.drums">Batería</span></li>
-            </ul>
-          </aside>
         </div>
+
+        <dialog class="lightbox" id="lightbox" aria-label="Foto de la banda" data-i18n-attr="aria-label:bio.photoDialog">
+          <button class="lightbox__close" id="lightboxClose" type="button" aria-label="Cerrar" data-i18n-attr="aria-label:bio.photoClose">&times;</button>
+          <img src="img/fotoBanda.jpg" alt="" width="1280" height="960" loading="lazy">
+        </dialog>
       </div>
     </section>
 
@@ -333,7 +359,7 @@
 
   <!-- ===== FOOTER ===== -->
   <footer class="footer" id="contacto">
-    <img class="footer__logo" src="logoverde-web.png" alt="Blessed Extinction">
+    <img class="footer__logo" src="img/logoverde-web.png" alt="Blessed Extinction">
 
     <div class="footer__contact">
       <span class="footer__label" data-i18n="footer.contact">Contacto</span>

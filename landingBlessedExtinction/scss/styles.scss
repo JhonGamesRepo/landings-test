@@ -566,7 +566,7 @@ $splash-duration: 7s; // mantener sincronizado con SPLASH_DURATION en main.js
   display: grid;
   place-items: center;
   text-align: center;
-  background: url("../final-web.jpg") center / cover no-repeat;
+  background: url("../img/final-web.jpg") center / cover no-repeat;
   isolation: isolate;
 
   &::before {

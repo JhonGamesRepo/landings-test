@@ -28,6 +28,7 @@
     'hero.scroll': 'Scroll down',
     'disc.title': 'Discography',
     'disc.new': 'New',
+    'disc.newSingle': 'New single',
     'disc.altInc': 'Cover of the single Incorruptible Cadavérico',
     'disc.altSie': 'Cover of the single Siembra de Cadáveres',
     'disc.altVen': 'Cover of the EP Venganza Natural',
@@ -43,6 +44,11 @@
     'platforms.title': 'Listen & Follow',
     'platforms.platforms': 'Platforms',
     'platforms.social': 'Social media',
+    'bio.photoAlt': 'Blessed Extinction, left to right: Jhon Hernández, William Ruiz, Julio Sarmiento, Carlos Sarmiento and Julián Franco',
+    'bio.photoZoom': 'View full photo',
+    'bio.photoCaption': 'Bogotá · Since 2013',
+    'bio.photoDialog': 'Band photo',
+    'bio.photoClose': 'Close',
     'bio.title': 'The Band',
     'bio.p1': 'Blessed Extinction is a Colombian metal band that came together in Bogotá in late 2013, influenced by Death Metal, Thrash and New York Hardcore. The band was born after the breakup of its members’ previous projects, with one main goal: to build a solid, consistent band that leaves its mark on the history of Colombian metal, like other major bands from our country.',
     'bio.p2': 'An apocalyptic world and social decline are among the main themes of the band’s lyrics, along with personal experiences and thoughts, driven by heavy guitar riffs and aggressive vocals.',
@@ -491,16 +497,80 @@
   window.addEventListener('blur', () => {
     if (document.activeElement === spotifyFrame) Music.pause();
   });
-  const tabs = document.querySelectorAll('.player__tab');
-  tabs.forEach((tab) =>
-    tab.addEventListener('click', () => {
-      tabs.forEach((t) => {
-        t.classList.toggle('is-active', t === tab);
-        t.setAttribute('aria-selected', t === tab);
-      });
-      spotifyFrame.src = `https://open.spotify.com/embed/album/${tab.dataset.album}?utm_source=generator&theme=0`;
+  // Cada portada de abajo muestra su funda, sus datos y su álbum en el
+  // reproductor; el color de acento sigue al lanzamiento (data-release)
+  const disc = document.getElementById('disc');
+  const picks = disc.querySelectorAll('.disc__pick');
+  const panes = disc.querySelectorAll('.disc__record, .disc__info');
+  picks.forEach((pick) =>
+    pick.addEventListener('click', () => {
+      const id = pick.dataset.release;
+      if (disc.dataset.release === id) return;
+      disc.dataset.release = id;
+      picks.forEach((p) => p.setAttribute('aria-selected', p === pick));
+      panes.forEach((p) => { p.hidden = p.dataset.release !== id; });
+      spotifyFrame.src = `https://open.spotify.com/embed/album/${pick.dataset.album}?utm_source=generator&theme=0`;
     })
   );
+
+  // ----- Foto de la banda: lightbox -----
+  const lightbox = document.getElementById('lightbox');
+  document.getElementById('bioZoom').addEventListener('click', () => lightbox.showModal());
+  lightbox.addEventListener('click', (e) => {
+    if (e.target === lightbox || e.target.closest('#lightboxClose')) lightbox.close();
+  });
+
+  // ----- Linterna con parallax en «Escucha & Sigue» -----
+  // La luz y el parallax siguen al cursor (o al dedo); sin puntero, la luz deriva
+  // sola. Los valores se suavizan en cada cuadro y el bucle sólo corre mientras
+  // la sección está en pantalla.
+  const lantern = document.getElementById('lantern');
+  const listen = document.getElementById('escuchar');
+  if (reduceMotion) {
+    lantern.style.setProperty('--my', '35%');
+  } else {
+    const target = { x: 0, y: 0 };
+    const pos = { x: 0, y: 0 };
+    let pointerInside = false;
+    let visible = false;
+    let frame = 0;
+    let t = 0;
+
+    const onPointer = (e) => {
+      const r = listen.getBoundingClientRect();
+      target.x = e.clientX - r.left;
+      target.y = e.clientY - r.top;
+      pointerInside = true;
+    };
+    listen.addEventListener('pointermove', onPointer);
+    listen.addEventListener('pointerdown', onPointer);
+    listen.addEventListener('pointerleave', () => { pointerInside = false; });
+
+    const tick = () => {
+      const w = listen.clientWidth;
+      const h = listen.clientHeight;
+      if (!pointerInside) {
+        t += 0.005;
+        target.x = w * (0.5 + 0.3 * Math.sin(t));
+        target.y = h * (0.42 + 0.18 * Math.sin(t * 1.7));
+      }
+      pos.x += (target.x - pos.x) * 0.12;
+      pos.y += (target.y - pos.y) * 0.12;
+      lantern.style.setProperty('--mx', `${pos.x}px`);
+      lantern.style.setProperty('--my', `${pos.y}px`);
+      lantern.style.setProperty('--px', ((pos.x / w) * 2 - 1).toFixed(3));
+      lantern.style.setProperty('--py', ((pos.y / h) * 2 - 1).toFixed(3));
+      frame = visible ? requestAnimationFrame(tick) : 0;
+    };
+
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !frame) {
+        if (!pos.x) { pos.x = listen.clientWidth / 2; pos.y = listen.clientHeight * 0.42; }
+        frame = requestAnimationFrame(tick);
+      }
+    }).observe(listen);
+  }
 
   document.getElementById('year').textContent = new Date().getFullYear();
 })();
