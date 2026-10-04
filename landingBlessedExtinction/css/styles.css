@@ -386,6 +386,23 @@ ul {
   pointer-events: none;
 }
 
+/* ----- Salida del splash: estalla como un vitral (fragmentos creados por el JS) ----- */
+.splash-exit {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: hidden;
+  pointer-events: none;
+}
+.splash-exit__piece {
+  position: absolute;
+  inset: 0;
+  will-change: transform, opacity;
+}
+.splash-exit--vitral .splash-exit__piece {
+  filter: drop-shadow(0 0 1px #f0d58a) drop-shadow(0 0 4px rgba(201, 162, 74, 0.75));
+}
+
 .header {
   position: fixed;
   inset: 0 0 auto;

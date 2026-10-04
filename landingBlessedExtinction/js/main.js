@@ -271,13 +271,127 @@
     return { play, stop };
   })();
 
-  // ----- Canción al entrar: "Incorruptible Cadavérico" en Spotify desde el 1:30 -----
+  // ----- Cristales rotos al estallar el vitral (sintetizado con Web Audio, sin archivos) -----
+  // Golpe seco y chasquido al romperse, un tintineo por cada trozo que se suelta y
+  // esquirlas sueltas mientras caen. Los tiempos los marca la animación (shatterSplash).
+  const Glass = (() => {
+    let ctx = null;
+    let reverbBuf = null;
+
+    // Ruido con caída exponencial ya grabada en el buffer
+    const decayingNoise = (seconds, decay, channels = 1) => {
+      const len = Math.floor(ctx.sampleRate * seconds);
+      const buf = ctx.createBuffer(channels, len, ctx.sampleRate);
+      for (let ch = 0; ch < channels; ch++) {
+        const data = buf.getChannelData(ch);
+        for (let n = 0; n < len; n++) data[n] = (Math.random() * 2 - 1) * Math.pow(1 - n / len, decay);
+      }
+      return buf;
+    };
+
+    // Se crea con el clic del usuario: así el contexto ya está activo y sin retardo al estallar
+    const prepare = () => {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC || ctx) return;
+      ctx = new AC();
+      reverbBuf = decayingNoise(2.5, 3, 2);
+    };
+
+    const ping = (bus, t, f, level, ring) => {
+      const pan = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+      if (pan) {
+        pan.pan.value = Math.random() * 1.6 - 0.8;
+        pan.connect(bus);
+      }
+      [1, 2.76].forEach((ratio, p) => {
+        const o = ctx.createOscillator();
+        const g = ctx.createGain();
+        o.frequency.value = f * ratio;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(level / (p + 1), t + 0.003);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + ring / (p + 1));
+        o.connect(g).connect(pan || bus);
+        o.start(t);
+        o.stop(t + ring + 0.05);
+      });
+    };
+
+    // impact: segundos hasta que se rompe · releases: segundos en que se suelta cada trozo
+    // Devuelve la latencia de salida (s) para que la imagen espere lo mismo que el sonido
+    const shatter = ({ impact, releases }) => {
+      if (!ctx) return 0;
+      ctx.resume();
+      const now = ctx.currentTime;
+      const hit = now + impact;
+
+      const master = ctx.createGain();
+      master.gain.value = 0.8;
+      master.connect(ctx.createDynamicsCompressor()).connect(ctx.destination);
+      // Eco corto de nave: el mismo espacio que el sonido de ultratumba
+      const reverb = ctx.createConvolver();
+      reverb.buffer = reverbBuf;
+      const wet = ctx.createGain();
+      wet.gain.value = 0.35;
+      reverb.connect(wet).connect(master);
+      const bus = ctx.createGain();
+      bus.connect(master);
+      bus.connect(reverb);
+
+      // Golpe grave del impacto
+      const thump = ctx.createOscillator();
+      const thumpG = ctx.createGain();
+      thump.frequency.setValueAtTime(140, hit);
+      thump.frequency.exponentialRampToValueAtTime(40, hit + 0.25);
+      thumpG.gain.setValueAtTime(0.7, hit);
+      thumpG.gain.exponentialRampToValueAtTime(0.001, hit + 0.35);
+      thump.connect(thumpG).connect(bus);
+      thump.start(hit);
+      thump.stop(hit + 0.4);
+
+      // Chasquido: ruido agudo muy corto + cuerpo del estallido algo más largo
+      [[0.25, 6, 'highpass', 2500, 0.9], [0.9, 3, 'bandpass', 3800, 0.45]].forEach(([dur, decay, type, freq, level]) => {
+        const src = ctx.createBufferSource();
+        src.buffer = decayingNoise(dur, decay);
+        const filter = ctx.createBiquadFilter();
+        filter.type = type;
+        filter.frequency.value = freq;
+        const g = ctx.createGain();
+        g.gain.value = level;
+        src.connect(filter).connect(g).connect(bus);
+        src.start(hit);
+      });
+
+      // Cada trozo que se suelta da su propio golpecito de cristal
+      releases.forEach((r) => {
+        for (let k = 0; k < 3; k++) {
+          ping(bus, now + r + k * (0.015 + Math.random() * 0.03), 1800 + Math.random() * 4500, 0.09 + Math.random() * 0.06, 0.12 + Math.random() * 0.3);
+        }
+      });
+
+      // Esquirlas sueltas: más densas justo tras el impacto y se apagan mientras caen
+      for (let k = 0; k < 45; k++) {
+        const t = hit + 0.02 + Math.pow(Math.random(), 1.8) * 1.6;
+        ping(bus, t, 2200 + Math.random() * 6000, (0.04 + Math.random() * 0.07) * (1 - (t - hit) / 2), 0.06 + Math.random() * 0.3);
+      }
+
+      // Se cierra al terminar y se vuelve a crear en el siguiente clic (repetir intro)
+      const old = ctx;
+      ctx = null;
+      setTimeout(() => old.close(), 5000);
+      return old.outputLatency || old.baseLatency || 0;
+    };
+
+    return { prepare, shatter };
+  })();
+
+  // ----- Canción al entrar: "Incorruptible Cadavérico" en Spotify -----
   // El reproductor se crea oculto al cargar la página para que esté listo al entrar.
   // Spotify sólo entrega la canción completa a visitantes con sesión iniciada; sin
-  // sesión reproduce una vista previa corta, así que el salto a 1:30 se hace sólo
+  // sesión reproduce una vista previa corta, así que el salto a SONG_START_AT se hace sólo
   // cuando la pista dura más que eso (saltar más allá de la vista previa la detiene).
   const Music = (() => {
-    const SONG_START = 90; // segundos
+    const SONG_START_AT = '0:30'; // minuto:segundo donde arranca la canción al entrar
+    const SONG_START = SONG_START_AT.split(':').reduce((acc, part) => acc * 60 + Number(part), 0); // segundos
     const SPOTIFY_URI = 'spotify:track:3SSYo3fM6wHw28QY71RTwC';
     const box = document.getElementById('nowPlaying');
     let controller = null;
@@ -317,7 +431,7 @@
     const start = () => {
       wantPlay = true;
       setVisible(true);
-      // Al repetir la intro, la canción vuelve al 1:30 (o al inicio de la vista previa)
+      // Al repetir la intro, la canción vuelve a SONG_START_AT (o al inicio de la vista previa)
       if (controller && startedOnce) controller.seek(fullTrack ? SONG_START : 0);
       startedOnce = true;
       if (controller) controller.play();
@@ -372,14 +486,108 @@
     dust.appendChild(frag);
   }
 
+  // Copia del splash congelada en su fotograma actual (las animaciones CSS se sincronizan)
+  const snapshotSplash = (layer, clip) => {
+    const piece = document.createElement('div');
+    piece.className = 'splash-exit__piece';
+    const copy = splash.cloneNode(true);
+    copy.removeAttribute('id');
+    copy.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
+    copy.style.clipPath = clip;
+    piece.appendChild(copy);
+    layer.appendChild(piece);
+    const src = [splash, ...splash.querySelectorAll('*')];
+    const twins = new Map([copy, ...copy.querySelectorAll('*')].map((n, k) => [n, src[k]]));
+    copy.getAnimations({ subtree: true }).forEach((anim) => {
+      if (!(anim instanceof CSSAnimation)) return;
+      const twin = twins.get(anim.effect.target)?.getAnimations()
+        .find((a) => a.animationName === anim.animationName);
+      if (twin) anim.currentTime = twin.currentTime;
+    });
+    return piece;
+  };
+
+  const makeLayer = (kind) => {
+    const layer = document.createElement('div');
+    layer.className = `splash-exit splash-exit--${kind}`;
+    layer.setAttribute('aria-hidden', 'true');
+    layer.inert = true;
+    document.body.appendChild(layer);
+    return layer;
+  };
+
+  // Salida: la pantalla estalla como un vitral; los trozos del centro saltan hacia el espectador y el resto cae.
+  // Primero se crean los trozos (clonar es lento) y, ya pintados, arrancan a la vez animación y sonido.
+  const IMPACT = 100; // ms desde que arranca la salida hasta que el cristal se rompe
+  const shatterSplash = (sound) => {
+    const layer = makeLayer('vitral');
+    const w = innerWidth;
+    const h = innerHeight;
+    const cx = w * (0.44 + Math.random() * 0.12);
+    const cy = h * (0.38 + Math.random() * 0.12);
+    const far = Math.hypot(w, h);
+    const spokes = 8;
+    const angles = Array.from({ length: spokes }, (_, k) => ((k + 0.5 + (Math.random() - 0.5) * 0.6) / spokes) * Math.PI * 2);
+    const radii = angles.map(() => Math.min(w, h) * (0.14 + Math.random() * 0.12));
+    const at = (a, r) => [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+    const toClip = (pts) => `polygon(${pts.map(([x, y]) => `${x.toFixed(1)}px ${y.toFixed(1)}px`).join(', ')})`;
+    const shards = []; // [trozo, fotogramas, opciones]
+    angles.forEach((a, k) => {
+      const b = k + 1 < spokes ? angles[k + 1] : angles[0] + Math.PI * 2;
+      const ra = radii[k];
+      const rb = radii[(k + 1) % spokes];
+      const mid = (a + b) / 2;
+      const spin = (Math.random() - 0.5) * 50;
+
+      const inner = [[cx, cy], at(a, ra), at(b, rb)];
+      const p1 = snapshotSplash(layer, toClip(inner));
+      p1.style.transformOrigin = `${at(mid, (ra + rb) / 3).map((v) => `${v}px`).join(' ')}`;
+      shards.push([p1, [
+        { transform: 'none', opacity: 1 },
+        { transform: `translate(${Math.cos(mid) * 6}px, ${Math.sin(mid) * 6}px)`, opacity: 1, offset: 0.15 },
+        { transform: `translate(${Math.cos(mid) * w * 0.25}px, ${Math.sin(mid) * h * 0.25}px) scale(1.6) rotate(${spin}deg)`, opacity: 0 },
+      ], { duration: 800, delay: IMPACT, easing: 'cubic-bezier(0.4, 0, 0.9, 0.6)', fill: 'forwards' }]);
+
+      const outer = [at(a, ra), at(a, far), at(b, far), at(b, rb)];
+      const p2 = snapshotSplash(layer, toClip(outer));
+      p2.style.transformOrigin = `${at(mid, Math.max(ra, rb) * 1.8).map((v) => `${v}px`).join(' ')}`;
+      const drift = Math.cos(mid) * w * 0.15;
+      shards.push([p2, [
+        { transform: 'none' },
+        { transform: `translate(${Math.cos(mid) * 10}px, ${Math.sin(mid) * 10}px)`, offset: 0.12 },
+        { transform: `translate(${drift}px, ${h * 1.25}px) rotate(${spin}deg)` },
+      ], { duration: 1300 + Math.random() * 400, delay: IMPACT + 60 + Math.random() * 260, easing: 'cubic-bezier(0.5, 0, 0.9, 0.5)', fill: 'forwards', release: 0.12 }]);
+    });
+    // Sin polvo en los fragmentos: son muchas copias y no se nota
+    layer.querySelectorAll('.splash__dust').forEach((n) => n.remove());
+    splash.style.display = 'none';
+
+    // Dos fotogramas: los trozos (idénticos a la pantalla) ya están pintados antes de moverse
+    return new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+      .then(() => {
+        // Momento en que cada trozo de fuera se suelta (fin de la grieta) → un tintineo
+        const releases = shards
+          .filter(([, , o]) => o.release)
+          .map(([, , o]) => (o.delay + o.duration * o.release) / 1000);
+        const latency = sound ? Glass.shatter({ impact: IMPACT / 1000, releases }) * 1000 : 0;
+        const anims = shards.map(([piece, frames, { release, ...opts }]) => piece.animate(frames, { ...opts, delay: opts.delay + latency }));
+        return Promise.all(anims.map((anim) => anim.finished));
+      })
+      .then(() => layer.remove());
+  };
+
   let closed = false;
   const closeSplash = () => {
     if (closed) return;
     closed = true;
-    splash.classList.add('is-hidden');
     document.body.classList.remove('is-locked');
     // Se oculta (no se elimina) para poder repetir la intro desde el pie de página
-    splash.addEventListener('transitionend', () => { if (closed) splash.style.display = 'none'; }, { once: true });
+    if (reduceMotion) {
+      splash.classList.add('is-hidden');
+      splash.addEventListener('transitionend', () => { if (closed) splash.style.display = 'none'; }, { once: true });
+      return;
+    }
+    shatterSplash(withSound).then(() => { if (closed) splash.style.display = 'none'; });
   };
 
   let started = false;
@@ -400,7 +608,10 @@
     if (started) return;
     started = true;
     withSound = sound;
-    if (sound) Ultratumba.play(SPLASH_DURATION / 1000);
+    if (sound) {
+      Ultratumba.play(SPLASH_DURATION / 1000);
+      Glass.prepare();
+    }
     splash.classList.remove('is-waiting');
     splash.classList.add('is-playing');
     timer = setTimeout(enterSite, SPLASH_DURATION);
@@ -413,6 +624,7 @@
     if (!started) {
       started = true;
       withSound = true;
+      Glass.prepare();
       enterSite(0);
     } else {
       enterSite();
@@ -436,6 +648,7 @@
     if (!closed) return;
     Music.pause();
     window.scrollTo({ top: 0, behavior: 'instant' });
+    document.querySelectorAll('.splash-exit').forEach((n) => n.remove());
     splash.classList.remove('is-hidden', 'is-playing');
     splash.classList.add('is-waiting', 'is-replay');
     splash.style.display = '';
