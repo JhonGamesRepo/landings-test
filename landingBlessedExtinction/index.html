@@ -8,6 +8,9 @@
   <meta property="og:title" content="Blessed Extinction — Incorruptible Cadavérico">
   <meta property="og:description" content="Nuevo single disponible ya. Death Metal desde 2013, Bogotá, Colombia.">
   <meta property="og:image" content="img/incorruptible-cadaverico.jpg">
+  <link rel="icon" type="image/svg+xml" href="img/favicon.svg">
+  <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+  <meta name="theme-color" content="#0d0a08">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -352,6 +355,7 @@
             <a class="btn btn--ghost btn--sm" href="https://instagram.com/blessed_extinction" target="_blank" rel="noopener">Instagram</a>
             <a class="btn btn--ghost btn--sm" href="https://www.facebook.com/blessedextinctionmusic" target="_blank" rel="noopener">Facebook</a>
           </div>
+          <button class="tour__game" type="button" data-game-open data-i18n="game.teaser">Mientras tanto… ¿puedes detener el péndulo? ⏳</button>
         </div>
       </div>
     </section>
@@ -375,8 +379,87 @@
     </div>
 
     <p class="footer__copy">&copy; <span id="year"></span> Blessed Extinction &middot; <span data-i18n="footer.tagline">Death Metal desde 2013 · Bogotá, Colombia</span></p>
-    <button class="footer__replay" id="replayIntro" type="button" data-i18n="footer.replay">Repetir el Inicio &#8635;</button>
+    <div class="footer__actions">
+      <button class="footer__replay" id="replayIntro" type="button" data-i18n="footer.replay">Repetir el Inicio &#8635;</button>
+      <button class="footer__replay" type="button" data-game-open data-i18n="footer.game">Minijuego &#8987;</button>
+    </div>
   </footer>
+
+  <!-- ===== MINIJUEGO: El Péndulo ===== -->
+  <!-- Para cambiar los enlaces del final, ver GAME_LINKS en js/main.js -->
+  <dialog class="game" id="game" aria-labelledby="gameTitle">
+    <button class="game__close" id="gameClose" type="button" aria-label="Cerrar" data-i18n-attr="aria-label:game.close">&times;</button>
+
+    <div class="game__screen" data-screen="intro">
+      <span class="game__kicker" data-i18n="game.kicker">Minijuego</span>
+      <h2 class="game__title" id="gameTitle" data-i18n="game.title">El Péndulo</h2>
+      <p class="game__text" data-i18n="game.rules">Detén el péndulo dentro de la zona dorada. Cada acierto lo acelera. Tres fallos y quedas sepultado.</p>
+      <button class="btn btn--primary" id="gameStart" type="button" data-i18n="game.start">Jugar</button>
+      <p class="game__best"><span data-i18n="game.best">Récord</span>: <strong data-game-best>0</strong></p>
+    </div>
+
+    <div class="game__screen game__screen--play" data-screen="play" hidden>
+      <div class="game__hud">
+        <span class="game__score" data-game-score aria-live="polite">0</span>
+        <span class="game__lives" data-game-lives aria-label="Vidas"></span>
+      </div>
+      <div class="game__stage" id="gameStage">
+        <svg class="game__svg" viewBox="0 0 300 210" aria-hidden="true">
+          <path class="game__track" id="gameTrack"/>
+          <path class="game__zone" id="gameZone"/>
+          <g id="gameArm">
+            <line class="game__rod" x1="150" y1="16" x2="150" y2="176"/>
+            <circle class="game__bob" cx="150" cy="176" r="11"/>
+            <circle class="game__bob-core" cx="150" cy="176" r="4"/>
+          </g>
+          <circle class="game__pivot" cx="150" cy="16" r="4"/>
+        </svg>
+        <p class="game__feedback" data-game-feedback aria-live="assertive"></p>
+      </div>
+      <p class="game__hint" data-i18n="game.hint">Toca la pantalla o pulsa Espacio</p>
+    </div>
+
+    <div class="game__screen" data-screen="over" hidden>
+      <span class="game__kicker" data-i18n="game.overKicker">Sepultado</span>
+      <p class="game__final"><strong data-game-final>0</strong></p>
+      <p class="game__best"><span data-i18n="game.best">Récord</span>: <strong data-game-best>0</strong> <span class="game__new" data-game-new hidden data-i18n="game.newBest">¡Nuevo récord!</span></p>
+      <button class="btn btn--ghost btn--sm" id="gameAgain" type="button" data-i18n="game.again">Otra vez</button>
+      <div class="game__promo">
+        <p class="game__promo-text" data-i18n="game.promo">¿Sobreviviste? Ahora escucha lo que suena al otro lado.</p>
+        <div class="game__promo-ctas" id="gamePromo"></div>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ===== CHAT con la banda (Telegram) ===== -->
+  <!-- Para activarlo, ver CHAT_API y TURNSTILE_SITEKEY en js/main.js -->
+  <button class="chat-fab" id="chatFab" type="button" aria-label="Escríbele a la banda" data-i18n-attr="aria-label:chat.open" aria-expanded="false" aria-controls="chatPanel" hidden>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H9l-4.3 3.4A.4.4 0 0 1 4 20.1V5a1 1 0 0 1 1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 9h8M8 12.5h5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+    <span class="chat-fab__dot" id="chatDot" hidden></span>
+  </button>
+
+  <section class="chat" id="chatPanel" role="dialog" aria-labelledby="chatTitle" hidden>
+    <header class="chat__head">
+      <div>
+        <p class="chat__title" id="chatTitle" data-i18n="chat.title">Escríbele a la banda</p>
+        <p class="chat__sub" data-i18n="chat.sub">Respondemos desde Telegram</p>
+      </div>
+      <button class="chat__close" id="chatClose" type="button" aria-label="Cerrar chat" data-i18n-attr="aria-label:chat.close">&times;</button>
+    </header>
+    <div class="chat__log" id="chatLog" aria-live="polite">
+      <p class="chat__intro" data-i18n="chat.intro">¿Booking, merch o sólo saludar? Escríbenos y te responderá alguien de la banda. La conversación queda guardada en este navegador: puedes volver más tarde por la respuesta.</p>
+    </div>
+    <form class="chat__form" id="chatForm">
+      <div class="chat__captcha" id="chatCaptcha"></div>
+      <div class="chat__row">
+        <textarea class="chat__input" id="chatInput" rows="1" maxlength="1000" required placeholder="Escribe tu mensaje…" aria-label="Mensaje" data-i18n-attr="placeholder:chat.placeholder;aria-label:chat.input"></textarea>
+        <button class="chat__send" id="chatSend" type="submit" aria-label="Enviar" data-i18n-attr="aria-label:chat.send">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 20.4 21 12 3.4 3.6 3.4 10l12.6 2-12.6 2z" fill="currentColor"/></svg>
+        </button>
+      </div>
+    </form>
+    <p class="chat__note" data-i18n="chat.note">🔒 Conexión cifrada. No compartas contraseñas ni datos bancarios.</p>
+  </section>
 
   <!-- ===== REPRODUCTOR FLOTANTE (Spotify): suena al entrar, desde el minuto 1:30 ===== -->
   <!-- Se carga oculto desde el inicio para que esté listo cuando el usuario entre -->

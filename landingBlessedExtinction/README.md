@@ -33,3 +33,13 @@ Va debajo de la biografía como franja panorámica 21:9 (4:3 en móvil), centrad
 `propuestas.html` contiene las maquetas que se compararon; se puede borrar.
 
 El diseño anterior de esta carpeta (concepto «Brutalismo industrial») quedó en `_respaldo-v3/`.
+
+## Minijuego «El Péndulo»
+
+Se abre desde el enlace bajo «Sin fechas anunciadas» (Tour) y desde el botón «Minijuego» del pie. Va en un `<dialog>` a pantalla completa en móvil. El jugador detiene el péndulo en la zona dorada; cada acierto acelera el péndulo y achica la zona, un acierto en el centro vale 2 puntos y con 3 fallos se acaba la partida. El récord queda guardado en el navegador. Al terminar aparecen los enlaces de `GAME_LINKS` en `js/main.js` (YouTube y Spotify; hay una línea comentada para añadir la tienda de merch).
+
+## Chat con la banda (Telegram)
+
+Botón flotante abajo a la derecha que sube cuando aparece el reproductor de Spotify. En móvil se abre como hoja inferior. El backend está en `../chat-worker-blessed/`, donde también está la guía de configuración y seguridad. Para activarlo hay que rellenar `CHAT_API` y `TURNSTILE_SITEKEY` en `js/main.js`. Mientras estén vacíos, el botón sólo aparece al abrir la página en local.
+
+> Estilos de ambos al final de `css/styles.css` (antes de los `@keyframes`). El `scss/styles.scss` no tiene la paleta actual, así que estos cambios sólo están en el CSS.

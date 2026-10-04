@@ -70,10 +70,62 @@
     'splash.skip': 'Skip intro ⏭',
     'np.tap': 'Press ▶ to listen',
     'np.close': 'Close player',
+    'footer.game': 'Mini game ⌛',
+    'game.teaser': 'Meanwhile… can you stop the pendulum? ⏳',
+    'game.close': 'Close',
+    'game.kicker': 'Mini game',
+    'game.title': 'The Pendulum',
+    'game.rules': 'Stop the pendulum inside the golden zone. Every hit makes it faster. Three misses and you’re buried.',
+    'game.start': 'Play',
+    'game.best': 'Best',
+    'game.hint': 'Tap the screen or press Space',
+    'game.overKicker': 'Buried',
+    'game.newBest': 'New record!',
+    'game.again': 'Play again',
+    'game.promo': 'Survived? Now hear what sounds on the other side.',
+    'game.perfect': 'Perfect!',
+    'game.hit': 'Good',
+    'game.miss': 'Miss',
+    'game.youtube': 'YouTube channel',
+    'game.spotify': 'Listen on Spotify',
+    'game.merch': 'Merch',
+    'chat.open': 'Message the band',
+    'chat.title': 'Message the band',
+    'chat.sub': 'We reply from Telegram',
+    'chat.close': 'Close chat',
+    'chat.intro': 'Booking, merch or just saying hi? Write to us and someone from the band will reply. The conversation is saved in this browser, so you can come back later for the answer.',
+    'chat.placeholder': 'Type your message…',
+    'chat.input': 'Message',
+    'chat.send': 'Send',
+    'chat.note': '🔒 Encrypted connection. Don’t share passwords or bank details.',
+    'chat.band': 'Blessed Extinction',
+    'chat.sending': 'Sending…',
+    'chat.error': 'Couldn’t send it. Try again.',
+    'chat.rate': 'Too many messages in a row. Wait a few minutes.',
+    'chat.captcha': 'Verification failed. Try again.',
+    'chat.offline': 'The chat isn’t available yet.',
+  };
+
+  // Textos en español que sólo genera el JS (no están en el HTML)
+  const ES_JS = {
+    'game.perfect': '¡Perfecto!',
+    'game.hit': 'Bien',
+    'game.miss': 'Fallo',
+    'game.youtube': 'Canal de YouTube',
+    'game.spotify': 'Escuchar en Spotify',
+    'game.merch': 'Merch',
+    'chat.band': 'Blessed Extinction',
+    'chat.sending': 'Enviando…',
+    'chat.error': 'No se pudo enviar. Inténtalo de nuevo.',
+    'chat.rate': 'Demasiados mensajes seguidos. Espera unos minutos.',
+    'chat.captcha': 'No se pudo verificar. Inténtalo de nuevo.',
+    'chat.offline': 'El chat aún no está disponible.',
   };
 
   const LANG_KEY = 'be-lang';
-  const ES = {}; // textos originales en español, tomados del HTML
+  const ES = { ...ES_JS }; // textos originales en español, tomados del HTML
+  let currentLang = 'es';
+  const tr = (key) => (currentLang === 'en' ? EN[key] : undefined) ?? ES[key];
   const i18nText = document.querySelectorAll('[data-i18n]');
   const i18nHtml = document.querySelectorAll('[data-i18n-html]');
   const i18nAttr = document.querySelectorAll('[data-i18n-attr]');
@@ -86,6 +138,7 @@
   const setLang = (lang) => {
     const dict = lang === 'en' ? EN : ES;
     const t = (key) => dict[key] ?? ES[key];
+    currentLang = lang;
     document.documentElement.lang = lang;
     i18nText.forEach((el) => { el.textContent = t(el.dataset.i18n); });
     i18nHtml.forEach((el) => { el.innerHTML = t(el.dataset.i18nHtml); });
@@ -820,6 +873,437 @@
       }
     }).observe(listen);
   }
+
+  // ----- Minijuego: El Péndulo -----
+  // Detener el péndulo dentro de la zona dorada. Cada acierto lo acelera y achica la
+  // zona; tres fallos terminan la partida. Al final, enlaces a YouTube, Spotify o merch.
+  const GAME_LINKS = [
+    { key: 'game.youtube', href: 'https://www.youtube.com/@BlessedExtinction', primary: true },
+    { key: 'game.spotify', href: 'https://open.spotify.com/artist/5pcjzTYxRRCxWtVyOKMhJ0' },
+    // { key: 'game.merch', href: 'https://URL-DE-LA-TIENDA' },
+  ];
+  (() => {
+    const dlg = document.getElementById('game');
+    const stage = document.getElementById('gameStage');
+    const arm = document.getElementById('gameArm');
+    const zone = document.getElementById('gameZone');
+    const screens = dlg.querySelectorAll('[data-screen]');
+    const scoreEl = dlg.querySelector('[data-game-score]');
+    const livesEl = dlg.querySelector('[data-game-lives]');
+    const feedback = dlg.querySelector('[data-game-feedback]');
+    const PIVOT = [150, 16];
+    const R = 160;      // largo del péndulo (unidades del viewBox)
+    const SWING = 62;   // grados a cada lado
+    const LIVES = 3;
+    const BEST_KEY = 'be-pendulum-best';
+
+    let best = 0;
+    try { best = Number(localStorage.getItem(BEST_KEY)) || 0; } catch (_) { /* almacenamiento no disponible */ }
+    let playing = false;
+    let score = 0;
+    let lives = LIVES;
+    let period = 2.4;   // segundos por oscilación completa
+    let half = 14;      // media anchura de la zona, en grados
+    let center = 0;
+    let phase = 0;
+    let angle = 0;
+    let last = 0;
+    let frame = 0;
+    let lockUntil = 0;  // ignora toques justo tras empezar o fallar
+    let audio = null;
+
+    const point = (deg) => {
+      const a = (deg * Math.PI) / 180;
+      return [PIVOT[0] + R * Math.sin(a), PIVOT[1] + R * Math.cos(a)].map((n) => n.toFixed(1));
+    };
+    const arc = (from, to) => {
+      const [x1, y1] = point(from);
+      const [x2, y2] = point(to);
+      return `M${x1} ${y1} A${R} ${R} 0 0 0 ${x2} ${y2}`;
+    };
+    document.getElementById('gameTrack').setAttribute('d', arc(-SWING, SWING));
+
+    const show = (name) => screens.forEach((s) => { s.hidden = s.dataset.screen !== name; });
+    const setBest = () => dlg.querySelectorAll('[data-game-best]').forEach((el) => { el.textContent = best; });
+    const renderLives = () => {
+      livesEl.innerHTML = Array.from({ length: LIVES }, (_, k) => `<span${k < lives ? '' : ' class="is-lost"'}>✝</span>`).join('');
+    };
+
+    // Sonidos cortos sintetizados (campana al acertar, golpe sordo al fallar)
+    const tone = (freq, dur, type, vol) => {
+      if (!audio) return;
+      const t = audio.currentTime;
+      const o = audio.createOscillator();
+      const g = audio.createGain();
+      o.type = type;
+      o.frequency.setValueAtTime(freq, t);
+      g.gain.setValueAtTime(vol, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(audio.destination);
+      o.start(t);
+      o.stop(t + dur);
+    };
+    const sfx = {
+      hit: (perfect) => {
+        const f = perfect ? 988 : 659;
+        tone(f, 0.6, 'sine', 0.12);
+        tone(f * 2.76, 0.25, 'sine', 0.04);
+      },
+      miss: () => tone(55, 0.45, 'triangle', 0.4),
+    };
+
+    const flash = (text, kind) => {
+      feedback.textContent = text;
+      feedback.className = `game__feedback is-${kind}`;
+      void feedback.offsetWidth; // reinicia la animación
+      feedback.classList.add('is-on');
+    };
+
+    const moveZone = () => {
+      const limit = SWING - half - 4;
+      for (let k = 0; k < 12; k++) {
+        center = (Math.random() * 2 - 1) * limit;
+        if (Math.abs(center - angle) > half + 12) break; // que no aparezca bajo el péndulo
+      }
+      zone.setAttribute('d', arc(center - half, center + half));
+    };
+
+    const tick = (now) => {
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      phase += (dt * Math.PI * 2) / period;
+      angle = SWING * Math.sin(phase);
+      arm.setAttribute('transform', `rotate(${(-angle).toFixed(2)} ${PIVOT[0]} ${PIVOT[1]})`);
+      frame = requestAnimationFrame(tick);
+    };
+    const run = () => {
+      cancelAnimationFrame(frame);
+      last = performance.now();
+      frame = requestAnimationFrame(tick);
+    };
+    const halt = () => {
+      cancelAnimationFrame(frame);
+      frame = 0;
+    };
+
+    const start = () => {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC && !audio) audio = new AC();
+      score = 0;
+      lives = LIVES;
+      period = 2.4;
+      half = 14;
+      phase = Math.random() * Math.PI * 2;
+      scoreEl.textContent = '0';
+      renderLives();
+      moveZone();
+      show('play');
+      playing = true;
+      lockUntil = performance.now() + 250;
+      run();
+    };
+
+    const end = () => {
+      playing = false;
+      halt();
+      const isBest = score > best;
+      if (isBest) {
+        best = score;
+        try { localStorage.setItem(BEST_KEY, String(best)); } catch (_) { /* almacenamiento no disponible */ }
+      }
+      setTimeout(() => {
+        dlg.querySelector('[data-game-final]').textContent = score;
+        dlg.querySelector('[data-game-new]').hidden = !isBest;
+        setBest();
+        const promo = document.getElementById('gamePromo');
+        promo.replaceChildren(...GAME_LINKS.map(({ key, href, primary }) => {
+          const a = document.createElement('a');
+          a.className = `btn btn--sm ${primary ? 'btn--primary' : 'btn--ghost'}`;
+          a.href = href;
+          a.target = '_blank';
+          a.rel = 'noopener';
+          a.textContent = tr(key);
+          return a;
+        }));
+        show('over');
+      }, 700);
+    };
+
+    const strike = () => {
+      const now = performance.now();
+      if (!playing || now < lockUntil) return;
+      const off = Math.abs(angle - center);
+      if (off <= half) {
+        const perfect = off <= half * 0.35;
+        score += perfect ? 2 : 1;
+        scoreEl.textContent = score;
+        flash(tr(perfect ? 'game.perfect' : 'game.hit'), perfect ? 'perfect' : 'hit');
+        sfx.hit(perfect);
+        period = Math.max(0.8, period * 0.93);
+        half = Math.max(4.5, half - 0.8);
+        moveZone();
+      } else {
+        lives -= 1;
+        renderLives();
+        flash(tr('game.miss'), 'miss');
+        sfx.miss();
+        if (navigator.vibrate) navigator.vibrate(120);
+        if (!reduceMotion) {
+          stage.classList.remove('is-shaking');
+          void stage.offsetWidth;
+          stage.classList.add('is-shaking');
+        }
+        lockUntil = now + 300;
+        if (lives <= 0) end();
+      }
+    };
+
+    document.querySelectorAll('[data-game-open]').forEach((btn) =>
+      btn.addEventListener('click', () => {
+        setBest();
+        show('intro');
+        dlg.showModal();
+      })
+    );
+    document.getElementById('gameStart').addEventListener('click', start);
+    document.getElementById('gameAgain').addEventListener('click', start);
+    document.getElementById('gameClose').addEventListener('click', () => dlg.close());
+    dlg.querySelector('[data-screen="play"]').addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      strike();
+    });
+    dlg.addEventListener('keydown', (e) => {
+      if (playing && (e.key === ' ' || e.key === 'Enter')) {
+        e.preventDefault();
+        strike();
+      }
+    });
+    dlg.addEventListener('close', () => {
+      playing = false;
+      halt();
+      if (audio) { audio.close(); audio = null; }
+    });
+    // En otra pestaña el juego se congela y sigue al volver
+    document.addEventListener('visibilitychange', () => {
+      if (!playing) return;
+      if (document.hidden) halt();
+      else run();
+    });
+  })();
+
+  // ----- Chat con la banda (Telegram) -----
+  // La página sólo habla con el Worker de Cloudflare (carpeta chat-worker-blessed);
+  // el token del bot nunca llega al navegador. TURNSTILE_SITEKEY es pública.
+  const CHAT_API = '';          // p. ej. 'https://blessed-chat.TU-SUBDOMINIO.workers.dev'
+  const TURNSTILE_SITEKEY = ''; // clave de sitio de Cloudflare Turnstile
+  (() => {
+    const fab = document.getElementById('chatFab');
+    const panel = document.getElementById('chatPanel');
+    const log = document.getElementById('chatLog');
+    const form = document.getElementById('chatForm');
+    const input = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('chatSend');
+    const dot = document.getElementById('chatDot');
+    // Sin configurar, el botón sólo aparece al probar en local
+    const isLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+    if (!CHAT_API && !isLocal) return;
+    // En localhost, sin configurar, usa el Worker local (npm run dev) y la clave de prueba de Turnstile
+    const devServer = !CHAT_API && location.hostname !== '';
+    const api = devServer ? 'http://127.0.0.1:8787' : CHAT_API;
+    const sitekey = devServer ? '1x00000000000000000000AA' : TURNSTILE_SITEKEY;
+    fab.hidden = false;
+
+    const SID_KEY = 'be-chat-sid';
+    const SEEN_KEY = 'be-chat-seen';
+    const store = {
+      get: (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } },
+      set: (k, v) => { try { localStorage.setItem(k, v); } catch (_) { /* almacenamiento no disponible */ } },
+      del: (k) => { try { localStorage.removeItem(k); } catch (_) { /* almacenamiento no disponible */ } },
+    };
+    let sid = store.get(SID_KEY);
+    let seenId = Number(store.get(SEEN_KEY)) || 0;
+    let lastId = 0;
+    let isOpen = false;
+    let timer = 0;
+    const shown = new Set(); // ids ya pintados (evita duplicados entre envío y consulta)
+
+    // Los textos se insertan siempre como texto, nunca como HTML
+    const bubble = (from, text, name) => {
+      const el = document.createElement('div');
+      el.className = `chat__msg chat__msg--${from}`;
+      if (from === 'band') {
+        const who = document.createElement('span');
+        who.className = 'chat__who';
+        who.textContent = name ? `${name} · ${tr('chat.band')}` : tr('chat.band');
+        el.append(who);
+      }
+      const p = document.createElement('p');
+      p.textContent = text;
+      el.append(p);
+      log.append(el);
+      log.scrollTop = log.scrollHeight;
+      return el;
+    };
+    const setStatus = (el, text) => {
+      let s = el.querySelector('.chat__status');
+      if (!text) { s?.remove(); return; }
+      if (!s) {
+        s = document.createElement('span');
+        s.className = 'chat__status';
+        el.append(s);
+      }
+      s.textContent = text;
+    };
+
+    const markSeen = () => {
+      seenId = lastId;
+      store.set(SEEN_KEY, String(seenId));
+      dot.hidden = true;
+    };
+
+    const poll = async () => {
+      if (!sid || !api) return;
+      try {
+        const res = await fetch(`${api}/poll?sid=${encodeURIComponent(sid)}&after=${lastId}`, { cache: 'no-store' });
+        if (res.status === 404) { sid = null; store.del(SID_KEY); return; } // conversación caducada
+        if (!res.ok) return;
+        const { messages } = await res.json();
+        messages.forEach((m) => {
+          lastId = Math.max(lastId, m.id);
+          if (shown.has(m.id)) return;
+          shown.add(m.id);
+          bubble(m.from === 'band' ? 'band' : 'me', m.text, m.name);
+          if (m.from === 'band' && m.id > seenId && !isOpen) dot.hidden = false;
+        });
+        if (isOpen) markSeen();
+      } catch (_) { /* sin conexión: se reintenta en la siguiente vuelta */ }
+    };
+
+    // Con el panel abierto se consulta cada 4 s; cerrado, cada 30 s (para el aviso)
+    const schedule = () => {
+      clearTimeout(timer);
+      if (!sid || document.hidden) return;
+      timer = setTimeout(async () => { await poll(); schedule(); }, isOpen ? 4000 : 30000);
+    };
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) poll().then(schedule);
+    });
+
+    // Turnstile (anti-bots de Cloudflare): se carga sólo al abrir el chat por primera vez
+    let tsLoading = null;
+    let tsWidget = null;
+    let tsToken = '';
+    const loadTurnstile = () => {
+      if (!sitekey) return Promise.resolve();
+      tsLoading ??= new Promise((resolve) => {
+        window.onBeTurnstile = () => {
+          tsWidget = window.turnstile.render('#chatCaptcha', {
+            sitekey,
+            theme: 'dark',
+            appearance: 'interaction-only',
+            language: currentLang,
+            callback: (token) => { tsToken = token; },
+            'expired-callback': () => { tsToken = ''; },
+          });
+          resolve();
+        };
+        const s = document.createElement('script');
+        s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onBeTurnstile&render=explicit';
+        s.async = true;
+        document.head.append(s);
+      });
+      return tsLoading;
+    };
+    const getToken = async () => {
+      await loadTurnstile();
+      for (let k = 0; k < 40 && !tsToken; k++) await new Promise((r) => setTimeout(r, 250));
+      return tsToken;
+    };
+    const resetToken = () => {
+      tsToken = '';
+      if (tsWidget !== null && window.turnstile) window.turnstile.reset(tsWidget);
+    };
+
+    const openChat = () => {
+      isOpen = true;
+      panel.hidden = false;
+      fab.setAttribute('aria-expanded', 'true');
+      document.body.classList.add('chat-open');
+      if (!sid) loadTurnstile();
+      markSeen();
+      poll().then(schedule);
+      if (matchMedia('(pointer: fine)').matches) input.focus();
+    };
+    const closeChat = () => {
+      isOpen = false;
+      panel.hidden = true;
+      fab.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('chat-open');
+      schedule();
+      fab.focus();
+    };
+    fab.addEventListener('click', () => (isOpen ? closeChat() : openChat()));
+    document.getElementById('chatClose').addEventListener('click', closeChat);
+    panel.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeChat(); });
+
+    // El cuadro de texto crece hasta 5 líneas; Enter envía en escritorio (Mayús+Enter: salto)
+    const autosize = () => {
+      input.style.height = 'auto';
+      input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+    };
+    input.addEventListener('input', autosize);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey && matchMedia('(pointer: fine)').matches) {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = input.value.trim();
+      if (!text || sendBtn.disabled) return;
+      const el = bubble('me', text);
+      if (!api) {
+        setStatus(el, tr('chat.offline'));
+        el.classList.add('is-failed');
+        return;
+      }
+      setStatus(el, tr('chat.sending'));
+      input.value = '';
+      autosize();
+      sendBtn.disabled = true;
+      try {
+        const body = { sid, text, lang: currentLang };
+        if (!sid) body.turnstile = await getToken();
+        const res = await fetch(`${api}/send`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'error');
+        if (data.sid !== sid) {
+          sid = data.sid;
+          store.set(SID_KEY, sid);
+        }
+        shown.add(data.id);
+        setStatus(el, '');
+        schedule();
+      } catch (err) {
+        el.classList.add('is-failed');
+        setStatus(el, tr({ rate: 'chat.rate', captcha: 'chat.captcha' }[err.message] || 'chat.error'));
+        if (err.message === 'captcha') { sid = null; store.del(SID_KEY); }
+        if (!sid) resetToken();
+        if (!input.value) { input.value = text; autosize(); }
+      } finally {
+        sendBtn.disabled = false;
+      }
+    });
+
+    // Visitante que vuelve: comprobar si la banda respondió mientras no estaba
+    if (sid) setTimeout(() => poll().then(schedule), 3000);
+  })();
 
   document.getElementById('year').textContent = new Date().getFullYear();
 })();
