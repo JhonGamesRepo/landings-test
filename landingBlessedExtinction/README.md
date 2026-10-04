@@ -40,6 +40,6 @@ Se abre desde el enlace bajo «Sin fechas anunciadas» (Tour) y desde el botón 
 
 ## Chat con la banda (Telegram)
 
-Botón flotante abajo a la derecha que sube cuando aparece el reproductor de Spotify. En móvil se abre como hoja inferior. El backend está en `../chat-worker-blessed/`, donde también está la guía de configuración y seguridad. Para activarlo hay que rellenar `CHAT_API` y `TURNSTILE_SITEKEY` en `js/main.js`. Mientras estén vacíos, el botón sólo aparece al abrir la página en local.
+Botón flotante abajo a la derecha que sube cuando aparece el reproductor de Spotify. En móvil se abre como hoja inferior. El backend está en `../chat-worker-blessed/`, donde también está la guía de configuración y seguridad. `CHAT_API` y `TURNSTILE_SITEKEY` en `js/main.js` apuntan al Worker publicado. En `localhost` / `127.0.0.1` la página usa siempre el Worker local (`npm run dev`), porque el de producción sólo acepta peticiones desde la web publicada; abierta como archivo (`file://`) no muestra el chat.
 
 > Estilos de ambos al final de `css/styles.css` (antes de los `@keyframes`). El `scss/styles.scss` no tiene la paleta actual, así que estos cambios sólo están en el CSS.

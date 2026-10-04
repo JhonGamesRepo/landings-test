@@ -1105,10 +1105,12 @@
     const sendBtn = document.getElementById('chatSend');
     const dot = document.getElementById('chatDot');
     // Sin configurar, el botón sólo aparece al probar en local
-    const isLocal = ['localhost', '127.0.0.1', ''].includes(location.hostname);
-    if (!CHAT_API && !isLocal) return;
-    // En localhost, sin configurar, usa el Worker local (npm run dev) y la clave de prueba de Turnstile
-    const devServer = !CHAT_API && location.hostname !== '';
+    // Abierta como archivo (file://) no puede hablar con ningún Worker: sin chat
+    if (location.protocol === 'file:') return;
+    const devServer = ['localhost', '127.0.0.1'].includes(location.hostname);
+    if (!CHAT_API && !devServer) return;
+    // En localhost usa siempre el Worker local (npm run dev) y la clave de prueba de Turnstile;
+    // el Worker de producción sólo acepta peticiones desde la web publicada
     const api = devServer ? 'http://127.0.0.1:8787' : CHAT_API;
     const sitekey = devServer ? '1x00000000000000000000AA' : TURNSTILE_SITEKEY;
     fab.hidden = false;
