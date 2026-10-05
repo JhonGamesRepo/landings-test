@@ -12,6 +12,9 @@ const MAX_LEN = 1000;              // caracteres por mensaje
 const SESSIONS_PER_IP_HOUR = 5;    // conversaciones nuevas por IP y hora
 const MSGS_PER_5_MIN = 8;          // mensajes por conversación cada 5 minutos
 const RETENTION_DAYS = 30;         // luego se borran solos (cron diario)
+const NAME_LEN = 40;               // caracteres del nombre del visitante
+// Un color por conversación para distinguirlas de un vistazo en el grupo
+const DOTS = ['🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '🟤', '⚪'];
 
 export default {
   async fetch(request, env, ctx) {
@@ -83,10 +86,14 @@ async function onSend(request, env) {
       .bind(ipHash, now - 3600e3).first();
     if (n >= SESSIONS_PER_IP_HOUR) throw new ApiError('rate', 429);
 
+    // Número consecutivo de conversación (atómico) y nombre cifrado como los mensajes
+    const name = cleanName(body.name) || 'Visitante';
+    const { value: num } = await env.DB.prepare("UPDATE counters SET value = value + 1 WHERE name = 'visitor' RETURNING value").first();
+    const enc = await encrypt(await aesKey(env), name);
     sid = randomToken(24);
-    session = { id: await sha256(sid), short: randomToken(3).slice(0, 4) };
-    await env.DB.prepare('INSERT INTO sessions (id, short, ip_hash, created, last) VALUES (?, ?, ?, ?, ?)')
-      .bind(session.id, session.short, ipHash, now, now).run();
+    session = { id: await sha256(sid), short: randomToken(3).slice(0, 4), num, name };
+    await env.DB.prepare('INSERT INTO sessions (id, short, num, name, name_iv, ip_hash, created, last) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+      .bind(session.id, session.short, num, enc.body, enc.iv, ipHash, now, now).run();
     isNew = true;
   } else {
     const { n } = await env.DB.prepare("SELECT COUNT(*) AS n FROM messages WHERE sid = ? AND sender = 'me' AND ts > ?")
@@ -94,9 +101,14 @@ async function onSend(request, env) {
     if (n >= MSGS_PER_5_MIN) throw new ApiError('rate', 429);
   }
 
-  // Al grupo de la banda como texto plano (sin parse_mode: nada se interpreta como formato)
-  const header = isNew ? `🆕 Nuevo visitante web · #${session.short} · ${lang.toUpperCase()}` : `💬 #${session.short}`;
-  const sent = await tg(env, 'sendMessage', { chat_id: env.CHAT_ID, text: `${header}\n\n${text}` });
+  // Al grupo de la banda como texto plano (sin parse_mode: nada de lo que escribe el visitante
+  // se interpreta como formato). Sólo el encabezado va en negrita, marcado con "entities".
+  const header = `${sessionTag(session)}${isNew ? ` · 🆕 nueva conversación · ${lang.toUpperCase()}` : ''}`;
+  const sent = await tg(env, 'sendMessage', {
+    chat_id: env.CHAT_ID,
+    text: `${header}\n${text}`,
+    entities: [{ type: 'bold', offset: 0, length: header.length }],
+  });
   if (!sent.ok) throw new ApiError('telegram', 502);
 
   const id = await storeMessage(env, session.id, 'me', null, text, now);
@@ -183,7 +195,22 @@ async function onTelegram(update, env) {
 // ----- Almacenamiento (texto cifrado con AES-GCM antes de guardarlo) -----
 async function getSession(env, sid) {
   if (!/^[A-Za-z0-9_-]{32}$/.test(sid)) return null;
-  return env.DB.prepare('SELECT id, short FROM sessions WHERE id = ?').bind(await sha256(sid)).first();
+  const row = await env.DB.prepare('SELECT id, short, num, name, name_iv FROM sessions WHERE id = ?').bind(await sha256(sid)).first();
+  if (!row) return null;
+  const name = row.name ? await decrypt(await aesKey(env), row.name, row.name_iv) : null;
+  return { id: row.id, short: row.short, num: row.num, name };
+}
+
+// "🟢 #12 · Carlos" (las conversaciones anteriores a los nombres conservan su "#a3f9")
+function sessionTag({ num, name, short }) {
+  if (!num) return `💬 #${short} · ${name || 'Visitante'}`;
+  return `${DOTS[(num - 1) % DOTS.length]} #${num} · ${name || 'Visitante'}`;
+}
+
+// Nombre en una línea, sin caracteres de control y con longitud limitada
+function cleanName(value) {
+  if (typeof value !== 'string') return '';
+  return value.replace(/\p{C}/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, NAME_LEN);
 }
 
 async function storeMessage(env, sid, sender, name, text, ts) {

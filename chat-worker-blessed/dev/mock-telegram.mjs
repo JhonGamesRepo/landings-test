@@ -1,8 +1,10 @@
 // Telegram simulado para probar el chat en local, sin bot real.
 //   node dev/mock-telegram.mjs
-// Muestra en consola lo que el bot "envía" al grupo. Para responder como la banda
-// al último visitante, abre en el navegador:
-//   http://127.0.0.1:8788/reply?text=Hola%20desde%20la%20banda
+// Muestra en consola lo que el bot "envía" al grupo, con el número de cada mensaje.
+// Para responder como la banda (como si usaras «Responder» en Telegram), abre:
+//   http://127.0.0.1:8788/reply?text=Hola              → al último mensaje de visitante
+//   http://127.0.0.1:8788/reply?to=503&text=Hola       → a un mensaje concreto
+//   http://127.0.0.1:8788/messages                     → todo lo enviado al grupo (JSON)
 // Requiere en .dev.vars: TG_API=http://127.0.0.1:8788, CHAT_ID=-100123 y el mismo WEBHOOK_SECRET.
 import http from 'node:http';
 import fs from 'node:fs';
@@ -16,23 +18,30 @@ const vars = Object.fromEntries(
 
 let nextId = 500;
 let lastVisitorMsg = null;
+const group = []; // mensajes que el bot publicó en el "grupo"
 
 http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
 
+  if (url.pathname === '/messages') {
+    res.setHeader('Content-Type', 'application/json; charset=utf-8');
+    return res.end(JSON.stringify(group, null, 2));
+  }
+
   if (url.pathname === '/reply') {
     const text = url.searchParams.get('text') || '¡Hola! Te respondemos desde Telegram 🤘';
-    if (!lastVisitorMsg) return res.end('Aún no hay mensajes de visitantes.');
+    const to = Number(url.searchParams.get('to')) || lastVisitorMsg;
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    if (!to) return res.end('Aún no hay mensajes de visitantes.');
     const r = await fetch(`${WORKER}/telegram`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-Telegram-Bot-Api-Secret-Token': vars.WEBHOOK_SECRET },
       body: JSON.stringify({ message: {
         message_id: nextId++, chat: { id: CHAT_ID }, from: { id: 1, first_name: 'Banda' }, text,
-        reply_to_message: { message_id: lastVisitorMsg },
+        reply_to_message: { message_id: to },
       } }),
     });
-    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
-    return res.end(`Respuesta enviada (webhook ${r.status}): ${text}`);
+    return res.end(`Respuesta al mensaje ${to} (webhook ${r.status}): ${text}`);
   }
 
   let body = '';
@@ -43,11 +52,12 @@ http.createServer(async (req, res) => {
     const message_id = nextId++;
     if (method === 'sendMessage') {
       if (!payload.reply_parameters) lastVisitorMsg = message_id;
-      console.log(`\n[grupo de Telegram] ${payload.text}`);
+      group.push({ message_id, text: payload.text, entities: payload.entities });
+      console.log(`\n[grupo de Telegram · mensaje ${message_id}] ${payload.text}`);
     } else {
       console.log(`[${method}] ${JSON.stringify(payload.reaction || '')}`);
     }
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify({ ok: true, result: method === 'sendMessage' ? { message_id } : true }));
   });
-}).listen(8788, '127.0.0.1', () => console.log('Telegram simulado en http://127.0.0.1:8788 — responde con /reply?text=...'));
+}).listen(8788, '127.0.0.1', () => console.log('Telegram simulado en http://127.0.0.1:8788 — responde con /reply?to=<mensaje>&text=...'));

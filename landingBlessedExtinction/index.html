@@ -451,6 +451,8 @@
     </div>
     <form class="chat__form" id="chatForm">
       <div class="chat__captcha" id="chatCaptcha"></div>
+      <!-- Sólo para el primer mensaje: la banda ve el nombre en Telegram -->
+      <input class="chat__name" id="chatName" type="text" maxlength="40" autocomplete="given-name" placeholder="¿Cómo te llamas?" aria-label="Tu nombre" data-i18n-attr="placeholder:chat.namePlaceholder;aria-label:chat.name" hidden>
       <div class="chat__row">
         <textarea class="chat__input" id="chatInput" rows="1" maxlength="1000" required placeholder="Escribe tu mensaje…" aria-label="Mensaje" data-i18n-attr="placeholder:chat.placeholder;aria-label:chat.input"></textarea>
         <button class="chat__send" id="chatSend" type="submit" aria-label="Enviar" data-i18n-attr="aria-label:chat.send">

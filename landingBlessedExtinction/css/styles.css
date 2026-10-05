@@ -2019,6 +2019,26 @@ ul {
 .chat__captcha {
   margin-bottom: 0.5rem;
 }
+.chat__name {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  padding: 0.55rem 0.7rem;
+  font: 16px/1.4 "Inter", system-ui, sans-serif;
+  color: var(--c-bone-light);
+  background: var(--c-bg-soft);
+  border: 1px solid var(--c-line);
+  outline: none;
+}
+.chat__name[hidden] {
+  display: none;
+}
+.chat__name:focus {
+  border-color: var(--c-gold);
+}
+.chat__name::placeholder {
+  color: var(--c-ash);
+}
 .chat__row {
   display: flex;
   align-items: flex-end;

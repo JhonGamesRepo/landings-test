@@ -10,13 +10,15 @@ Visitante ──HTTPS──► Worker ──HTTPS──► Telegram (grupo de la
 
 ## Cómo lo usa la banda
 
-1. El visitante escribe en la web. En el grupo de Telegram aparece:
-   `🆕 Nuevo visitante web · #a3f9 · ES` y su mensaje.
+1. El visitante escribe su nombre (sólo la primera vez) y su mensaje. En el grupo de Telegram aparece, con el encabezado en negrita:
+   `🟢 #12 · Carlos · 🆕 nueva conversación · ES` y debajo el mensaje. Los siguientes mensajes de esa persona llegan como `🟢 #12 · Carlos`.
 2. Cualquier integrante del grupo **mantiene pulsado el mensaje → Responder** y escribe.
 3. El bot marca la respuesta con 👍 (significa que se envió) y el visitante la ve en la web firmada como **Blessed Extinction**. Con `SHOW_MEMBER_NAME = "true"` aparece como «Julio · Blessed Extinction».
 4. Los mensajes que no son respuestas no salen del grupo: la banda puede hablar ahí con normalidad.
 
-Sólo se envía texto. Cada visitante tiene su etiqueta (`#a3f9`), así varias conversaciones a la vez no se mezclan.
+Sólo se envía texto. Cada conversación tiene **número consecutivo, nombre y un color** (🔴🟠🟡🟢🔵🟣🟤⚪, que se repiten cada 8), así varias conversaciones a la vez no se mezclan. La respuesta va siempre a la persona del mensaje que se responde, aunque en el grupo haya varios nombres iguales. El nombre se guarda cifrado, como los mensajes.
+
+> Base creada antes de los nombres: aplicar una vez `npx wrangler d1 execute blessed-chat --remote --file=migrations/001-nombre-y-numero.sql`.
 
 ## Seguridad
 

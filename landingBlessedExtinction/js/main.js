@@ -95,6 +95,8 @@
     'chat.close': 'Close chat',
     'chat.intro': 'Booking, merch or just saying hi? Write to us and someone from the band will reply. The conversation is saved in this browser, so you can come back later for the answer.',
     'chat.placeholder': 'Type your message…',
+    'chat.namePlaceholder': 'What’s your name?',
+    'chat.name': 'Your name',
     'chat.input': 'Message',
     'chat.send': 'Send',
     'chat.note': '🔒 Encrypted connection. Don’t share passwords or bank details.',
@@ -1104,7 +1106,7 @@
     const input = document.getElementById('chatInput');
     const sendBtn = document.getElementById('chatSend');
     const dot = document.getElementById('chatDot');
-    // Sin configurar, el botón sólo aparece al probar en local
+    const nameInput = document.getElementById('chatName');
     // Abierta como archivo (file://) no puede hablar con ningún Worker: sin chat
     if (location.protocol === 'file:') return;
     const devServer = ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -1117,6 +1119,7 @@
 
     const SID_KEY = 'be-chat-sid';
     const SEEN_KEY = 'be-chat-seen';
+    const NAME_KEY = 'be-chat-name';
     const store = {
       get: (k) => { try { return localStorage.getItem(k); } catch (_) { return null; } },
       set: (k, v) => { try { localStorage.setItem(k, v); } catch (_) { /* almacenamiento no disponible */ } },
@@ -1128,6 +1131,14 @@
     let isOpen = false;
     let timer = 0;
     const shown = new Set(); // ids ya pintados (evita duplicados entre envío y consulta)
+
+    // El nombre sólo se pide para empezar una conversación; la banda lo ve en Telegram
+    const syncName = () => {
+      nameInput.hidden = !!sid;
+      nameInput.required = !sid; // un campo oculto y obligatorio bloquearía el envío
+      if (!sid && !nameInput.value) nameInput.value = store.get(NAME_KEY) || '';
+    };
+    syncName();
 
     // Los textos se insertan siempre como texto, nunca como HTML
     const bubble = (from, text, name) => {
@@ -1167,7 +1178,7 @@
       if (!sid || !api) return;
       try {
         const res = await fetch(`${api}/poll?sid=${encodeURIComponent(sid)}&after=${lastId}`, { cache: 'no-store' });
-        if (res.status === 404) { sid = null; store.del(SID_KEY); return; } // conversación caducada
+        if (res.status === 404) { sid = null; store.del(SID_KEY); syncName(); return; } // conversación caducada
         if (!res.ok) return;
         const { messages } = await res.json();
         messages.forEach((m) => {
@@ -1234,7 +1245,7 @@
       if (!sid) loadTurnstile();
       markSeen();
       poll().then(schedule);
-      if (matchMedia('(pointer: fine)').matches) input.focus();
+      if (matchMedia('(pointer: fine)').matches) (!sid && !nameInput.value ? nameInput : input).focus();
     };
     const closeChat = () => {
       isOpen = false;
@@ -1265,6 +1276,8 @@
       e.preventDefault();
       const text = input.value.trim();
       if (!text || sendBtn.disabled) return;
+      const name = nameInput.value.replace(/\s+/g, ' ').trim();
+      if (!sid && !name) { nameInput.focus(); return; }
       const el = bubble('me', text);
       if (!api) {
         setStatus(el, tr('chat.offline'));
@@ -1277,7 +1290,11 @@
       sendBtn.disabled = true;
       try {
         const body = { sid, text, lang: currentLang };
-        if (!sid) body.turnstile = await getToken();
+        if (!sid) {
+          body.name = name;
+          store.set(NAME_KEY, name);
+          body.turnstile = await getToken();
+        }
         const res = await fetch(`${api}/send`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1288,6 +1305,7 @@
         if (data.sid !== sid) {
           sid = data.sid;
           store.set(SID_KEY, sid);
+          syncName();
         }
         shown.add(data.id);
         setStatus(el, '');
@@ -1295,7 +1313,7 @@
       } catch (err) {
         el.classList.add('is-failed');
         setStatus(el, tr({ rate: 'chat.rate', captcha: 'chat.captcha' }[err.message] || 'chat.error'));
-        if (err.message === 'captcha') { sid = null; store.del(SID_KEY); }
+        if (err.message === 'captcha') { sid = null; store.del(SID_KEY); syncName(); }
         if (!sid) resetToken();
         if (!input.value) { input.value = text; autosize(); }
       } finally {
